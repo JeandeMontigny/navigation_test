@@ -43,7 +43,7 @@ inline int Simulate(int argc, const char** argv) {
   Human* human = new Human({-450, -450, 0});
   human->SetDiameter(sparam->human_diameter);
   // human->AddBiologyModule(new Navigation());
-  human->AddBiologyModule(new Navigation(navigation_map));
+  human->AddBiologyModule(new Navigation(&navigation_map));
   rm->push_back(human);
 
 

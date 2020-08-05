@@ -21,7 +21,7 @@ struct Navigation : public BaseBiologyModule {
 
   Navigation() : BaseBiologyModule(gAllEventIds) {}
 
-  Navigation(std::vector<std::vector<bool>> navigation_map) : BaseBiologyModule(gAllEventIds) {
+  Navigation(std::vector<std::vector<bool>>* navigation_map) : BaseBiologyModule(gAllEventIds) {
     navigation_map_ = navigation_map;
   }
 
@@ -36,10 +36,13 @@ struct Navigation : public BaseBiologyModule {
     //
     // const auto& position = human->GetPosition();
 
+    // std::cout << navigation_map_->size() << std::endl;
+    // std::cout << (*navigation_map_)[0][0] << std::endl;
+
   } // end Run
 
 private:
-  std::vector<std::vector<bool>> navigation_map_;
+  std::vector<std::vector<bool>>* navigation_map_;
 }; // end Navigation
 
 }  // namespace bdm
