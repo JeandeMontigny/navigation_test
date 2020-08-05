@@ -15,21 +15,44 @@
 #define NAVIGATION_TEST_H_
 
 #include "biodynamo.h"
+#include "human.h"
+#include "behavior.h"
+#include "sim-param.h"
+#include "geom.h"
+#include "util_methods.h"
+#include "navigation_util.h"
 
 namespace bdm {
 
 inline int Simulate(int argc, const char** argv) {
+  bdm::Param::RegisterModuleParam(new bdm::SimParam());
+
   Simulation simulation(argc, argv);
 
-  // Define initial model - in this example: single cell at origin
+  auto* param = simulation.GetParam();
+  auto* sparam = param->GetModuleParam<SimParam>();
   auto* rm = simulation.GetResourceManager();
-  auto* cell = new Cell(30);
-  rm->push_back(cell);
+  simulation.GetRandom()->SetSeed(2975); // rand() % 10000
 
-  // Run simulation for one timestep
-  simulation.GetScheduler()->Simulate(1);
+  //construct geom
+  BuildMaze();
+  // construct the 2d array for navigation
+  std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
-  std::cout << "Simulation completed successfully!" << std::endl;
+  // human creation
+  Human* human = new Human({-450, -450, 0});
+  human->SetDiameter(sparam->human_diameter);
+  // human->AddBiologyModule(new Navigation());
+  human->AddBiologyModule(new Navigation(navigation_map));
+  rm->push_back(human);
+
+
+  // Run simulation for number_of_steps timestep
+  for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
+    simulation.GetScheduler()->Simulate(1);
+  }
+
+  std::cout << "done" << std::endl;
   return 0;
 }
 

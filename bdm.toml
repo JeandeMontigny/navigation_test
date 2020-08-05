@@ -1,0 +1,21 @@
+number_of_steps = 2
+human_diameter = 50
+
+# ----------------------------------------------------------------------------
+[simulation]
+time_step = 1
+bound_space = true
+min_bound = -500
+max_bound = 500
+run_mechanical_interactions = true
+show_simulation_step = false
+
+# ----------------------------------------------------------------------------
+[visualization]
+export = false
+live = false
+export_interval = 1
+
+    [[visualize_sim_object]]
+    name = "Human"
+    additional_data_members = [ "state_" ]
