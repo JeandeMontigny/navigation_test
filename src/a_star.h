@@ -8,9 +8,13 @@
 #ifndef A_STAR_H_
 #define A_STAR_H_
 
+#include <bits/stdc++.h>
 
 namespace bdm {
   using namespace std;
+
+  #define ROW 999
+  #define COL 999
 
   // Creating a shortcut for int, int pair type
   typedef pair<int, int> Pair;
@@ -29,7 +33,7 @@ namespace bdm {
 
   // A Utility Function to check whether given mapCell (row, col)
   // is a valid mapCell or not.
-  bool isValid(int row, int col) {
+  inline bool isValid(int row, int col) {
       // Returns true if row number and column number
       // is in range
       return (row >= 0) && (row < ROW) &&
@@ -38,7 +42,7 @@ namespace bdm {
 
   // A Utility Function to check whether the given mapCell is
   // blocked or not
-  bool isUnBlocked(int grid[][COL], int row, int col) {
+  inline bool isUnBlocked(std::vector<std::vector<bool>> grid, int row, int col) {
       // Returns true if the mapCell is not blocked else false
       if (grid[row][col] == 1)
           return (true);
@@ -48,7 +52,7 @@ namespace bdm {
 
   // A Utility Function to check whether destination mapCell has
   // been reached or not
-  bool isDestination(int row, int col, Pair dest) {
+  inline bool isDestination(int row, int col, Pair dest) {
       if (row == dest.first && col == dest.second)
           return (true);
       else
@@ -56,7 +60,7 @@ namespace bdm {
   }
 
   // A Utility Function to calculate the 'h' heuristics.
-  double calculateHValue(int row, int col, Pair dest) {
+  inline double calculateHValue(int row, int col, Pair dest) {
       // Return using the distance formula
       return ((double)sqrt ((row-dest.first)*(row-dest.first)
                             + (col-dest.second)*(col-dest.second)));
@@ -64,7 +68,7 @@ namespace bdm {
 
   // A Utility Function to trace the path from the source
   // to destination
-  void tracePath(mapCell mapCellDetails[][COL], Pair dest) {
+  inline void tracePath(mapCell mapCellDetails[][COL], Pair dest) {
       printf ("\nThe Path is ");
       int row = dest.first;
       int col = dest.second;
@@ -93,7 +97,7 @@ namespace bdm {
   // A Function to find the shortest path between
   // a given source mapCell to a destination mapCell according
   // to A* Search Algorithm
-  void aStarSearch(int grid[][COL], Pair src, Pair dest) {
+  inline void aStarSearch(std::vector<std::vector<bool>> grid, Pair src, Pair dest) {
       // If the source is out of range
       if (isValid (src.first, src.second) == false) {
           printf ("Source is invalid\n");
@@ -395,38 +399,8 @@ namespace bdm {
       if (foundDest == false)
           printf("Failed to find the Destination cell\n");
 
-      return;
+      // return path;
   } // end aStarSearch
-
-
-  // Driver program to test above function
-  // int main() {
-  //     /* Description of the Grid-
-  //      1--> The mapCell is not blocked
-  //      0--> The mapCell is blocked    */
-  //     int grid[ROW][COL] =
-  //     {
-  //         { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
-  //         { 1, 1, 1, 0, 1, 1, 1, 0, 1, 1 },
-  //         { 1, 1, 1, 0, 1, 1, 0, 1, 0, 1 },
-  //         { 0, 0, 1, 0, 1, 0, 0, 0, 0, 1 },
-  //         { 1, 1, 1, 0, 1, 1, 1, 0, 1, 0 },
-  //         { 1, 0, 1, 1, 1, 1, 0, 1, 0, 0 },
-  //         { 1, 0, 0, 0, 0, 1, 0, 0, 0, 1 },
-  //         { 1, 0, 1, 1, 1, 1, 0, 1, 1, 1 },
-  //         { 1, 1, 1, 0, 0, 0, 1, 0, 0, 1 }
-  //     };
-  //
-  //     // Source is the left-most bottom-most corner
-  //     Pair src = make_pair(8, 0);
-  //
-  //     // Destination is the left-most top-most corner
-  //     Pair dest = make_pair(0, 0);
-  //
-  //     aStarSearch(grid, src, dest);
-  //
-  //     return(0);
-  // }
 
 } // namespace bdm
 
