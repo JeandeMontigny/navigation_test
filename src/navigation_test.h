@@ -47,10 +47,13 @@ inline int Simulate(int argc, const char** argv) {
   human->AddBiologyModule(new Navigation(&navigation_map));
   rm->push_back(human);
 
-  Node start;
-  start.x = 50; start.y = 900;
-  Node dest;
-  dest.x = 900; dest.y = 50;
+  // Node start;
+  // start.x = 50; start.y = 900;
+  // Node dest;
+  // dest.x = 900; dest.y = 50;
+
+  Pair start = make_pair(50, 900);
+  Pair dest = make_pair(900, 50);
 
   // for (int x = 0; x < navigation_map.size(); x++ ) {
   //   for (int y = 0; y < navigation_map[0].size(); y++ ) {
@@ -60,7 +63,7 @@ inline int Simulate(int argc, const char** argv) {
   // }
 
   std::cout << "call A*" << std::endl;
-  AStar(navigation_map, start, dest);
+  AStar(navigation_map, start, dest, navigation_map.size());
 
   // Run simulation for number_of_steps timestep
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
