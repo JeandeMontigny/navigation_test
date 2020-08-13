@@ -41,12 +41,17 @@ inline int Simulate(int argc, const char** argv) {
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
   // human creation
-  Human* human = new Human({-450, 450, 0});
+  Human* human = new Human({-140, -90, 0});
   human->SetDiameter(sparam->human_diameter);
   // get destinations for this human
   std::vector<Pair> destinations_list = GetFirstDestination();
   human->destinations_list_= destinations_list;
   human->AddBiologyModule(new Navigation(&navigation_map));
+  rm->push_back(human);
+
+  // human at test destination
+  human = new Human({140, 90, 0});
+  human->SetDiameter(sparam->human_diameter);
   rm->push_back(human);
 
   // Run simulation for number_of_steps timestep
