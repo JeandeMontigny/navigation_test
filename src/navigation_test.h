@@ -47,20 +47,9 @@ inline int Simulate(int argc, const char** argv) {
   human->AddBiologyModule(new Navigation(&navigation_map));
   rm->push_back(human);
 
-  Pair start = make_pair(50, 900);
-  Pair dest = make_pair(900, 50);
-
-  auto path = AStar(navigation_map, start, dest, navigation_map.size());
-
-  while (!path.empty()) {
-    pair<int,int> p = path.top();
-    path.pop();
-    printf("-> (%d,%d) ",p.first,p.second);
-  }
-
   // Run simulation for number_of_steps timestep
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
-    simulation.GetScheduler()->Simulate(1);
+    simulation.GetScheduler()->Simulate(10);
   }
 
   std::cout << "done" << std::endl;
