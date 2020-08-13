@@ -23,12 +23,6 @@ class Human : public Cell {
       : Base(event, other, new_oid) {}
   explicit Human(const Double3& position) : Base(position) {}
 
-  // void SetMyDestinationList(std::vector<Pair> d) { destinations_list_ = d; }
-  // std::vector<Pair> GetMyDestinationList() const { return destinations_list_; }
-  //
-  // void SetMyPath(std::vector<std::vector<double>> p) { path_ = p; }
-  // std::vector<std::vector<double>> GetMyPath() const { return path_; }
-
   // This data member stores the current state of the agent.
   int state_ = 0;
   // store the destinations
