@@ -15,16 +15,16 @@ namespace bdm {
   using namespace std;
 
   // Creating a shortcut for int, int pair type
-  typedef pair<int, int> Pair;
+  typedef pair<double, double> Pair;
 
   // Creating a shortcut for pair<int, pair<int, int>> type
-  typedef pair<double, pair<int, int>> pPair;
+  typedef pair<double, pair<double, double>> pPair;
 
   // A structure to hold the neccesary parameters
   struct node {
       // Row and Column index of its parent
       // Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
-      int parent_i, parent_j;
+      double parent_i, parent_j;
       // f = g + h
       double f, g, h;
   };
@@ -70,22 +70,22 @@ namespace bdm {
   }
 
 // ---------------------------------------------------------------------------
-  // trace the path from the source to destination
-  inline stack<Pair> TracePath(std::vector<std::vector<node>> nodeDetails, Pair dest) {
+  // trace the path from the destination to the source
+  inline std::vector<std::vector<double>> TracePath(std::vector<std::vector<node>> nodeDetails, Pair dest) {
 
-    int row = dest.first;
-    int col = dest.second;
-    stack<Pair> Path;
+    double row = dest.first;
+    double col = dest.second;
+    std::vector<std::vector<double>> Path;
 
     while (!(nodeDetails[row][col].parent_i == row
              && nodeDetails[row][col].parent_j == col )) {
-      Path.push (make_pair (row, col));
-      int temp_row = nodeDetails[row][col].parent_i;
-      int temp_col = nodeDetails[row][col].parent_j;
+      Path.push_back({row, col});
+      double temp_row = nodeDetails[row][col].parent_i;
+      double temp_col = nodeDetails[row][col].parent_j;
       row = temp_row;
       col = temp_col;
     }
-    Path.push (make_pair (row, col));
+    Path.push_back({row, col});
 
     return Path;
   }
@@ -93,10 +93,10 @@ namespace bdm {
 // ---------------------------------------------------------------------------
   // find the shortest path between a given source node to a destination
   // node according to A* Search Algorithm
-  inline stack<Pair> AStar(std::vector<std::vector<bool>> grid,
+  inline std::vector<std::vector<double>> AStar(std::vector<std::vector<bool>> grid,
                            Pair src, Pair dest, const int sim_size) {
 
-    stack<Pair> path;
+    std::vector<std::vector<double>> path;
 
     // If the source is out of range
     if (IsValid (src.first, src.second, sim_size) == false) {
