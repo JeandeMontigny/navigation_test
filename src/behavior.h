@@ -13,6 +13,7 @@
 #include "geom.h"
 #include "sim-param.h"
 #include "a_star.h"
+#include "navigation_util.h"
 
 namespace bdm {
 
@@ -40,8 +41,8 @@ struct Navigation : public BaseBiologyModule {
 
     // if agent has to calculate path to destination
     if (!path_calculated_ && !human->destinations_list_.empty()) {
-      Pair start = make_pair(position[0]+param->max_bound_,
-                             position[1]+param->max_bound_);
+      Pair start = make_pair(GetBDMToMapLoc(position[0]),
+                             GetBDMToMapLoc(position[1]));
       Pair dest = human->destinations_list_[0];
 
       // calculate path using A*
@@ -57,9 +58,14 @@ struct Navigation : public BaseBiologyModule {
     else if (path_calculated_) {
 
       if (!human->path_.empty()) {
-        //TODO: navigate according to path
-        // std::cout << human->path_[human->path_.size()-1][0] << ","
-        //           << human->path_[human->path_.size()-1][1] << " -> ";
+        Double3 next_position = {
+          GetMapToBDMLoc(human->path_[human->path_.size()-1][0]),
+          GetMapToBDMLoc(human->path_[human->path_.size()-1][1]),
+          position[2] };
+        // navigate according to path
+        human->SetPosition(next_position);
+
+        // if either on or after this path position
         human->path_.erase(human->path_.end());
       }
       // path is empty, so destination is reached
