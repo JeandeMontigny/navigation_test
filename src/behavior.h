@@ -30,32 +30,44 @@ struct Navigation : public BaseBiologyModule {
   void Run(SimObject* so) override {
     auto* sim = Simulation::GetActive();
     // auto* random = sim->GetRandom();
-    // auto* param = sim->GetParam();
+    auto* param = sim->GetParam();
     // auto* sparam = param->GetModuleParam<SimParam>();
 
     auto* human = bdm_static_cast<Human*>(so);
+    const auto& position = human->GetPosition();
 
-    // const auto& position = human->GetPosition();
+    std::vector<std::vector<double>> path;
 
-    // std::cout << navigation_map_->size() << std::endl;
-    // std::cout << (*navigation_map_)[0][0] << std::endl;
+    // if agent has to calculate path to destination
+    if (!path_calculated_ && !human->destinations_list_.empty()) {
+      Pair start = make_pair(position[0]+param->max_bound_,
+                             position[1]+param->max_bound_);
+      Pair dest = human->destinations_list_[0];
 
-    // if has to calculate path to travel
-    if (!path_calculated_) {
-      Pair start = make_pair(50, 900);
-      Pair dest = make_pair(900, 50);
+      // calculate path using A*
+      path = AStar((*navigation_map_), start, dest, navigation_map_->size());
 
-      auto path = AStar((*navigation_map_), start, dest, navigation_map_->size());
-
-      while (!path.empty()) {
-        std::cout << path[path.size()-1][0] << ","
-                  << path[path.size()-1][1] << " -> ";
-        path.erase(path.end());
-      }
-      std::cout << "destination" << std::endl;
-
+      human->path_ = path;
+      // remove this travel form destination_list
+      human->destinations_list_.erase(human->destinations_list_.begin());
       path_calculated_ = true;
     } // end if has to calculate path
+
+    // if agent has its path, has to move to it
+    else if (path_calculated_) {
+
+      if (!human->path_.empty()) {
+        //TODO: navigate according to path
+        // std::cout << human->path_[human->path_.size()-1][0] << ","
+        //           << human->path_[human->path_.size()-1][1] << " -> ";
+        human->path_.erase(human->path_.end());
+      }
+      // path is empty, so destination is reached
+      else {
+        // can add an other destination here
+        path_calculated_ = false;
+      }
+    } // end has its path
 
   } // end Run
 
