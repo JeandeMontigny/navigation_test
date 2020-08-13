@@ -43,13 +43,15 @@ inline int Simulate(int argc, const char** argv) {
   // human creation
   Human* human = new Human({-450, 450, 0});
   human->SetDiameter(sparam->human_diameter);
-  // human->AddBiologyModule(new Navigation());
+  // get destinations for this human
+  std::vector<Pair> destinations_list = GetFirstDestination();
+  human->destinations_list_= destinations_list;
   human->AddBiologyModule(new Navigation(&navigation_map));
   rm->push_back(human);
 
   // Run simulation for number_of_steps timestep
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
-    simulation.GetScheduler()->Simulate(10);
+    simulation.GetScheduler()->Simulate(1000);
   }
 
   std::cout << "done" << std::endl;
