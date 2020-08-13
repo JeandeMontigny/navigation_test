@@ -25,37 +25,30 @@ namespace bdm {
     TGeoMedium *Air = new TGeoMedium("Air", 0, Vacuum);
     TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
 
-    // simulation volume - 10m * 10m * 3m
-    TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 500, 500, 150);
+    // simulation  volume - 2m * 2m * 2m
+    TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 150, 150, 100);
     gGeoManager->SetTopVolume(sim_space);
     gGeoManager->SetTopVisible(0);
-
-
     TGeoVolume *mBlocks;
 
-    // maze - 10m * 10m * 2m
-    // outside walls
-    mBlocks = geom->MakeBox("floor_roof", Iron, 500, 500, 5);
+    // maze - 2m * 2m * 2m
+    mBlocks = geom->MakeBox("floor_roof", Iron, 150, 100, 4);
     mBlocks->SetLineColor(kBlack);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -150));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 150));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -100));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 100));
 
-    mBlocks = geom->MakeBox("wall_length", Iron, 500, 5, 150);
-    // mBlocks->SetLineColor(kBlack);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -500, 0));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 500, 0));
+    mBlocks = geom->MakeBox("wall_length", Iron, 150, 4, 100);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -100, 0));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 100, 0));
 
-    mBlocks = geom->MakeBox("wall_width", Iron, 5, 500, 150);
-    // mBlocks->SetLineColor(kBlack);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-500, 0, 0));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(500, 0, 0));
+    mBlocks = geom->MakeBox("wall_width", Iron, 4, 100, 100);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-150, 0, 0));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(150, 0, 0));
 
-    // inside wall
-    mBlocks = geom->MakeBox("inside_wall1", Iron, 2, 300, 100);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -200, 0));
-
-    mBlocks = geom->MakeBox("inside_wall2", Iron, 150, 2, 100);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-350, -250, 0));
+    // // inside wall
+    mBlocks = geom->MakeBox("inside_wall", Iron, 4, 65, 100);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(50, 35, 0));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-50, -35, 0));
 
     // close geometry
     geom->CloseGeometry();
