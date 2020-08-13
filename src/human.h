@@ -10,11 +10,12 @@
 
 #include "core/sim_object/cell.h"
 #include "core/biology_module/biology_module.h"
+#include "a_star.h"
 
 namespace bdm {
 
 class Human : public Cell {
-  BDM_SIM_OBJECT_HEADER(Human, Cell, 1, state_);
+  BDM_SIM_OBJECT_HEADER(Human, Cell, 1, state_, destinations_list_, path_);
 
  public:
   Human() {}
@@ -22,8 +23,18 @@ class Human : public Cell {
       : Base(event, other, new_oid) {}
   explicit Human(const Double3& position) : Base(position) {}
 
-  /// This data member stores the current state of the agent.
+  // void SetMyDestinationList(std::vector<Pair> d) { destinations_list_ = d; }
+  // std::vector<Pair> GetMyDestinationList() const { return destinations_list_; }
+  //
+  // void SetMyPath(std::vector<std::vector<double>> p) { path_ = p; }
+  // std::vector<std::vector<double>> GetMyPath() const { return path_; }
+
+  // This data member stores the current state of the agent.
   int state_ = 0;
+  // store the destinations
+  std::vector<Pair> destinations_list_;
+  // store the path to a destination
+  std::vector<std::vector<double>> path_;
 };
 
 }  // namespace bdm
