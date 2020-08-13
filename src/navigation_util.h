@@ -34,6 +34,25 @@ namespace bdm {
     return navigation_map;
   } // end GetNavigationMap
 
+// ---------------------------------------------------------------------------
+inline std::vector<Pair> AddDestinationToList(std::vector<Pair> destinations_list) {
+  //TODO: create destination point depending on the environment:
+  //      going to a seat? is destination a wall? etc.
+  //      destination also depending on human previously created (same seat?)
+  // list of list to check if destination is already taken?
+  destinations_list.push_back(make_pair(900, 50));
+
+  return destinations_list;
+} // end AddDestinationToList
+
+// ---------------------------------------------------------------------------
+inline std::vector<Pair> GetFirstDestination() {
+  std::vector<Pair> destinations_list;
+  destinations_list = AddDestinationToList(destinations_list);
+
+  return destinations_list;
+} // end GetDestinationsList
+
 }
 
 #endif // NAVIGATION_UTIL_
