@@ -22,6 +22,7 @@ ModuleParamUid SimParam::GetUid() const { return kUid; }
 void SimParam::AssignFromConfig(const std::shared_ptr<cpptoml::table>& config) {
   BDM_ASSIGN_PARAM_VALUE(number_of_steps);
   BDM_ASSIGN_PARAM_VALUE(human_diameter);
+  BDM_ASSIGN_PARAM_VALUE(map_pixel_size);
 }
 
 }  // namespace bdm

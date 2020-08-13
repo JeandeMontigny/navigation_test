@@ -24,7 +24,7 @@ struct SimParam : public ModuleParam {
 
   uint64_t number_of_steps = 30;
   double human_diameter = 50; // cm
-  // std::vector<std::vector<bool>> navigation_map;
+  int map_pixel_size = 1;
 
  protected:
   /// Assign values from config file to variables
