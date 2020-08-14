@@ -9,6 +9,7 @@
 #define NAVIGATION_UTIL_
 
 #include "geom.h"
+#include "sim-param.h"
 
 namespace bdm {
 
@@ -71,22 +72,22 @@ inline double GetMapSize() {
   } // end GetNavigationMap
 
 // ---------------------------------------------------------------------------
-inline std::vector<Pair> AddDestinationToList(std::vector<Pair> destinations_list) {
+inline std::vector<std::pair<double, double>> AddDestinationToList(std::vector<std::pair<double, double>> destinations_list) {
   //TODO: create destination point depending on the environment:
   //      going to a seat? is destination a wall? etc.
   //      destination also depending on human previously created (same seat?)
   // list of list to check if destination is already taken?
-  // destinations_list.push_back(make_pair(GetBDMToMapLoc(450), GetBDMToMapLoc(-450)));
+  // destinations_list.push_back(make_std::pair(GetBDMToMapLoc(450), GetBDMToMapLoc(-450)));
 
   //TODO: remove hard coded destination
-  destinations_list.push_back(make_pair(GetBDMToMapLoc(124), GetBDMToMapLoc(74)));
+  destinations_list.push_back(std::make_pair(GetBDMToMapLoc(124), GetBDMToMapLoc(74)));
 
   return destinations_list;
 } // end AddDestinationToList
 
 // ---------------------------------------------------------------------------
-inline std::vector<Pair> GetFirstDestination() {
-  std::vector<Pair> destinations_list;
+inline std::vector<std::pair<double, double>> GetFirstDestination() {
+  std::vector<std::pair<double, double>> destinations_list;
   destinations_list = AddDestinationToList(destinations_list);
 
   return destinations_list;

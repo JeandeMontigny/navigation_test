@@ -44,7 +44,7 @@ inline int Simulate(int argc, const char** argv) {
   Human* human = new Human({-124, -74, 0});
   human->SetDiameter(sparam->human_diameter);
   // get destinations for this human
-  std::vector<Pair> destinations_list = GetFirstDestination();
+  std::vector<std::pair<double, double>> destinations_list = GetFirstDestination();
   human->destinations_list_= destinations_list;
   human->AddBiologyModule(new Navigation(&navigation_map));
   rm->push_back(human);

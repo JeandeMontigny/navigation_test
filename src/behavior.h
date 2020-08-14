@@ -29,9 +29,9 @@ struct Navigation : public BaseBiologyModule {
 
 
   void Run(SimObject* so) override {
-    auto* sim = Simulation::GetActive();
+    // auto* sim = Simulation::GetActive();
     // auto* random = sim->GetRandom();
-    auto* param = sim->GetParam();
+    // auto* param = sim->GetParam();
     // auto* sparam = param->GetModuleParam<SimParam>();
 
     auto* human = bdm_static_cast<Human*>(so);
@@ -41,9 +41,10 @@ struct Navigation : public BaseBiologyModule {
 
     // if agent has to calculate path to destination
     if (!path_calculated_ && !human->destinations_list_.empty()) {
-      Pair start = make_pair(GetBDMToMapLoc(position[0]),
-                             GetBDMToMapLoc(position[1]));
-      Pair dest = human->destinations_list_[0];
+      std::pair<double, double> start =
+        std::make_pair(GetBDMToMapLoc(position[0]),
+                       GetBDMToMapLoc(position[1]));
+      std::pair<double, double> dest = human->destinations_list_[0];
 
       // calculate path using A*
       path = AStar((*navigation_map_), start, dest, navigation_map_->size());

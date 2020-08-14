@@ -26,7 +26,7 @@ class Human : public Cell {
   // This data member stores the current state of the agent.
   int state_ = 0;
   // store the destinations
-  std::vector<Pair> destinations_list_;
+  std::vector<std::pair<double, double>> destinations_list_;
   // store the path to a destination
   std::vector<std::vector<double>> path_;
 };

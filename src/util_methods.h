@@ -8,6 +8,8 @@
 #ifndef UTILS_METHODS_
 #define UTILS_METHODS_
 
+#include "biodynamo.h"
+
 namespace bdm {
 
   inline double GetDistance(Double3 dAB) {
