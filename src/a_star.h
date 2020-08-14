@@ -9,18 +9,11 @@
 #define A_STAR_H_
 
 #include <bits/stdc++.h>
+#include "navigation_util.h"
 
 namespace bdm {
 
-  using namespace std;
-
-  // Creating a shortcut for int, int pair type
-  typedef pair<double, double> Pair;
-
-  // Creating a shortcut for pair<int, pair<int, int>> type
-  typedef pair<double, pair<double, double>> pPair;
-
-  // A structure to hold the neccesary parameters
+  // structure to hold the neccesary parameters
   struct node {
       // Row and Column index of its parent
       // Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
@@ -52,7 +45,7 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   // check whether destination node has been reached or not
-  inline bool IsDestination(int row, int col, Pair dest) {
+  inline bool IsDestination(int row, int col, std::pair<double, double> dest) {
     if (row == dest.first && col == dest.second) {
       return (true);
     }
@@ -63,7 +56,7 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   // calculate the 'h' heuristics.
-  inline double CalculateHValue(int row, int col, Pair dest) {
+  inline double CalculateHValue(int row, int col, std::pair<double, double> dest) {
     // Return using the distance formula
     return ((double)sqrt ((row-dest.first)*(row-dest.first)
                           + (col-dest.second)*(col-dest.second)));
@@ -71,7 +64,7 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   // trace the path from the destination to the source
-  inline std::vector<std::vector<double>> TracePath(std::vector<std::vector<node>> nodeDetails, Pair dest) {
+  inline std::vector<std::vector<double>> TracePath(std::vector<std::vector<node>> nodeDetails, std::pair<double, double> dest) {
 
     double row = dest.first;
     double col = dest.second;
@@ -94,37 +87,42 @@ namespace bdm {
   // find the shortest path between a given source node to a destination
   // node according to A* Search Algorithm
   inline std::vector<std::vector<double>> AStar(std::vector<std::vector<bool>> grid,
-                           Pair src, Pair dest, const int sim_size) {
+                           std::pair<double, double> src, std::pair<double, double> dest, const int sim_size) {
 
     std::vector<std::vector<double>> path;
 
     // If the source is out of range
     if (IsValid (src.first, src.second, sim_size) == false) {
-      cout << "source " << src.first << ", " << src.second
-           << " is out of simulation space" << endl;
+      std::cout << "source " << GetMapToBDMLoc(src.first) << ", "
+           << GetMapToBDMLoc(src.second)
+           << " is out of simulation space" << std::endl;
       return path;
     }
 
     // If the destination is out of range
     if (IsValid (dest.first, dest.second, sim_size) == false) {
-      cout << "destination " << dest.first << ", " << dest.second
-           << " is out of simulation space" << endl;
+      std::cout << "destination " << GetMapToBDMLoc(dest.first) << ", "
+           << GetMapToBDMLoc(dest.second)
+           << " is out of simulation space" << std::endl;
       return path;
     }
 
     // Either the source or the destination is blocked
     if (IsUnBlocked(grid, src.first, src.second) == false ||
         IsUnBlocked(grid, dest.first, dest.second) == false) {
-          cout << "source " << src.first << ", " << src.second
-               << " or destination " << dest.first << ", " << dest.second
-               << " are blocked (position not allowed)" << endl;
+          std::cout << "source " << GetMapToBDMLoc(src.first) << ", "
+               << GetMapToBDMLoc(src.second) << " or destination "
+               << GetMapToBDMLoc(dest.first) << ", "
+               << GetMapToBDMLoc(dest.second)
+               << " are blocked (position not allowed)" << std::endl;
       return path;
     }
 
     // If the destination node is the same as source node
     if (IsDestination(src.first, src.second, dest) == true) {
-      cout << "source "  << src.first << ", " << src.second
-           << " is the destination" << endl;
+      std::cout << "source "  << GetMapToBDMLoc(src.first) << ", "
+           << GetMapToBDMLoc(src.second)
+           << " is the destination" << std::endl;
       return path;
     }
 
@@ -160,15 +158,15 @@ namespace bdm {
     // where f = g + h,
     // and i, j are the row and column index of that node
     // Note that 0 <= i <= ROW-1 & 0 <= j <= COL-1
-    // This open list is implenented as a set of pair of pair.
-    set<pPair> openList;
+    // This open list is implenented as a set of std::pair of std::pair.
+    std::set<std::pair<double, std::pair<double, double>>> openList;
 
     // Put the starting node on the open list and set its
     // 'f' as 0
-    openList.insert(make_pair (0.0, make_pair (i, j)));
+    openList.insert(std::make_pair (0.0, std::make_pair (i, j)));
 
     while (!openList.empty()) {
-      pPair p = *openList.begin();
+      std::pair<double, std::pair<double, double>> p = *openList.begin();
 
       // Remove this vertex from the open list
       openList.erase(openList.begin());
@@ -212,7 +210,7 @@ namespace bdm {
           // using 'f' cost as the measure.
           if (nodeDetails[i-1][j].f == FLT_MAX ||
               nodeDetails[i-1][j].f > fNew) {
-            openList.insert( make_pair(fNew, make_pair(i-1, j)));
+            openList.insert( std::make_pair(fNew, std::make_pair(i-1, j)));
 
             // Update the details of this node
             nodeDetails[i-1][j].f = fNew;
@@ -245,7 +243,7 @@ namespace bdm {
 
           if (nodeDetails[i+1][j].f == FLT_MAX ||
               nodeDetails[i+1][j].f > fNew) {
-            openList.insert( make_pair (fNew, make_pair (i+1, j)));
+            openList.insert( std::make_pair (fNew, std::make_pair (i+1, j)));
             // Update the details of this node
             nodeDetails[i+1][j].f = fNew;
             nodeDetails[i+1][j].g = gNew;
@@ -277,7 +275,7 @@ namespace bdm {
 
           if (nodeDetails[i][j+1].f == FLT_MAX ||
               nodeDetails[i][j+1].f > fNew) {
-            openList.insert( make_pair(fNew, make_pair (i, j+1)));
+            openList.insert( std::make_pair(fNew, std::make_pair (i, j+1)));
 
             // Update the details of this node
             nodeDetails[i][j+1].f = fNew;
@@ -310,7 +308,7 @@ namespace bdm {
 
           if (nodeDetails[i][j-1].f == FLT_MAX ||
               nodeDetails[i][j-1].f > fNew) {
-            openList.insert( make_pair (fNew, make_pair (i, j-1)));
+            openList.insert( std::make_pair (fNew, std::make_pair (i, j-1)));
 
             // Update the details of this node
             nodeDetails[i][j-1].f = fNew;
