@@ -36,22 +36,18 @@ namespace bdm {
   inline bool IsUnBlocked(std::vector<std::vector<bool>> grid, int row, int col) {
     // Returns true if the node is not blocked else false
     if (grid[row][col] == 1) {
-      return (true);
+      return true;
     }
-    else {
-      return (false);
-    }
+    return false;
   }
 
 // ---------------------------------------------------------------------------
   // check whether destination node has been reached or not
   inline bool IsDestination(int row, int col, std::pair<double, double> dest) {
     if (row == dest.first && col == dest.second) {
-      return (true);
+      return true;
     }
-    else {
-      return (false);
-    }
+    return false;
   }
 
 // ---------------------------------------------------------------------------
@@ -81,7 +77,7 @@ namespace bdm {
     Path.push_back({row, col});
 
     return Path;
-  }
+  } // end TracePath
 
 // ---------------------------------------------------------------------------
   // find the shortest path between a given source node to a destination

@@ -77,7 +77,6 @@ inline std::vector<std::pair<double, double>> AddDestinationToList(std::vector<s
   //      going to a seat? is destination a wall? etc.
   //      destination also depending on human previously created (same seat?)
   // list of list to check if destination is already taken?
-  // destinations_list.push_back(make_std::pair(GetBDMToMapLoc(450), GetBDMToMapLoc(-450)));
 
   //TODO: remove hard coded destination
   destinations_list.push_back(std::make_pair(GetBDMToMapLoc(124), GetBDMToMapLoc(74)));
@@ -93,6 +92,6 @@ inline std::vector<std::pair<double, double>> GetFirstDestination() {
   return destinations_list;
 } // end GetDestinationsList
 
-}
+} // namespace bdm
 
 #endif // NAVIGATION_UTIL_
