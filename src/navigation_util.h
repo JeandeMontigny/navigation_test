@@ -47,8 +47,8 @@ inline double GetMapSize() {
     double map_size = GetMapSize();
     std::vector<std::vector<bool>> navigation_map(map_size, std::vector<bool>(map_size, true));
 
-    for (int x = 0 ; x < map_size ; x += sparam->map_pixel_size) {
-      for (int y = 0; y < map_size ; y += sparam->map_pixel_size) {
+    for (int x = 0 ; x < map_size ; x ++) {
+      for (int y = 0; y < map_size ; y ++) {
         double pos_x = GetMapToBDMLoc(x);
         double pos_y = GetMapToBDMLoc(y);
         Double3 position = {pos_x, pos_y, 0.0};
