@@ -49,13 +49,21 @@ inline double GetMapSize() {
 
     for (int x = 0 ; x < map_size ; x += sparam->map_pixel_size) {
       for (int y = 0; y < map_size ; y += sparam->map_pixel_size) {
-        Double3 position = {x + param->min_bound_, y + param->min_bound_, 0.0};
-        if (IsInsideStructure(position)) {
+        double pos_x = GetMapToBDMLoc(x);
+        double pos_y = GetMapToBDMLoc(y);
+        Double3 position = {pos_x, pos_y, 0.0};
+        if (IsInsideStructure(position) ||
+            // x axis
+            ObjectInbetween({pos_x - sparam->human_diameter/2, pos_y, 0.0},
+                            {pos_x + sparam->human_diameter/2, pos_y, 0.0}) ||
+            // y axis
+            ObjectInbetween({pos_x, pos_y - sparam->human_diameter/2, 0.0},
+                            {pos_x, pos_y + sparam->human_diameter/2, 0.0}) ||
+            // z axis
+            ObjectInbetween({pos_x, pos_y,-sparam->human_diameter/2},
+                            {pos_x, pos_y, sparam->human_diameter/2}) ) {
           navigation_map[x][y] = false;
         }
-        // if IsInsideStructure() can not capture small geom:
-        // use ObjectInbetween(), for x, y and z direction of voxel
-        // ie. ObjectInbetween(x, x+1); ObjectInbetween(y, y+1)
       }
     }
     std::cout << "navigation map created" << std::endl;
@@ -71,7 +79,7 @@ inline std::vector<Pair> AddDestinationToList(std::vector<Pair> destinations_lis
   // destinations_list.push_back(make_pair(GetBDMToMapLoc(450), GetBDMToMapLoc(-450)));
 
   //TODO: remove hard coded destination
-  destinations_list.push_back(make_pair(GetBDMToMapLoc(140), GetBDMToMapLoc(90)));
+  destinations_list.push_back(make_pair(GetBDMToMapLoc(124), GetBDMToMapLoc(74)));
 
   return destinations_list;
 } // end AddDestinationToList

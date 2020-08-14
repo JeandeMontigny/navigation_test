@@ -41,7 +41,7 @@ inline int Simulate(int argc, const char** argv) {
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
   // human creation
-  Human* human = new Human({-140, -90, 0});
+  Human* human = new Human({-124, -74, 0});
   human->SetDiameter(sparam->human_diameter);
   // get destinations for this human
   std::vector<Pair> destinations_list = GetFirstDestination();
@@ -50,7 +50,7 @@ inline int Simulate(int argc, const char** argv) {
   rm->push_back(human);
 
   // human at test destination
-  human = new Human({140, 90, 0});
+  human = new Human({124, 74, 0});
   human->SetDiameter(sparam->human_diameter);
   rm->push_back(human);
 
