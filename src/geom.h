@@ -32,21 +32,21 @@ namespace bdm {
     TGeoVolume *mBlocks;
 
     // maze - 2m * 2m * 2m
-    mBlocks = geom->MakeBox("floor_roof", Iron, 150, 100, 4);
+    mBlocks = geom->MakeBox("floor_roof", Iron, 150, 100, 1);
     mBlocks->SetLineColor(kBlack);
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -100));
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 100));
 
-    mBlocks = geom->MakeBox("wall_length", Iron, 150, 4, 100);
+    mBlocks = geom->MakeBox("wall_length", Iron, 150, 1, 100);
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -100, 0));
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 100, 0));
 
-    mBlocks = geom->MakeBox("wall_width", Iron, 4, 100, 100);
+    mBlocks = geom->MakeBox("wall_width", Iron, 1, 100, 100);
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-150, 0, 0));
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(150, 0, 0));
 
     // // inside wall
-    mBlocks = geom->MakeBox("inside_wall", Iron, 4, 65, 100);
+    mBlocks = geom->MakeBox("inside_wall", Iron, 0.2, 65, 100);
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(50, 35, 0));
     sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-50, -35, 0));
 
