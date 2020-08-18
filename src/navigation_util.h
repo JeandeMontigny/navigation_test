@@ -60,6 +60,15 @@ inline double GetMapSize() {
             // y axis
             ObjectInbetween({pos_x, pos_y - sparam->human_diameter/2, 0.0},
                             {pos_x, pos_y + sparam->human_diameter/2, 0.0}) ||
+            // diagonals
+            ObjectInbetween({pos_x - sparam->human_diameter/2 * 0.7,
+                             pos_y - sparam->human_diameter/2 * 0.7, 0.0},
+                            {pos_x + sparam->human_diameter/2 * 0.7,
+                             pos_y + sparam->human_diameter/2 * 0.7, 0.0}) ||
+           ObjectInbetween({pos_x - sparam->human_diameter/2 * 0.7,
+                            pos_y + sparam->human_diameter/2 * 0.7, 0.0},
+                           {pos_x + sparam->human_diameter/2 * 0.7,
+                            pos_y - sparam->human_diameter/2 * 0.7, 0.0}) ||
             // z axis
             ObjectInbetween({pos_x, pos_y,-sparam->human_diameter/2},
                             {pos_x, pos_y, sparam->human_diameter/2}) ) {
