@@ -17,6 +17,9 @@
 
 namespace bdm {
 
+  // enumerate substances in simulation
+  enum Substances { dg_0_ };
+
 // ---------------------------------------------------------------------------
 struct Navigation : public BaseBiologyModule {
   BDM_STATELESS_BM_HEADER(Navigation, BaseBiologyModule, 1);
@@ -36,6 +39,12 @@ struct Navigation : public BaseBiologyModule {
 
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
+
+    // if human is at the supermarket exit
+    if ((position[0] > 1480 || position[0] < 1520) &&
+        (position[1] > -1520 || position[1] < -1480)) {
+      human->RemoveFromSimulation();
+    }
 
     std::vector<std::vector<double>> path;
 
@@ -82,6 +91,71 @@ private:
   bool path_calculated_ = false;
   std::vector<std::vector<bool>>* navigation_map_;
 }; // end Navigation
+
+// ---------------------------------------------------------------------------
+struct SpreadVirusBehaviour : public BaseBiologyModule {
+  BDM_STATELESS_BM_HEADER(SpreadVirusBehaviour, BaseBiologyModule, 1);
+
+  SpreadVirusBehaviour() : BaseBiologyModule(gAllEventIds) {}
+
+  void Run(SimObject* so) override {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+
+    auto* human = bdm_static_cast<Human*>(so);
+
+    // recovery time if infected
+    if (human->state_ == State::kInfected) {
+      if (human->recovery_counter_ <= 0) {
+        human->state_ = State::kRecovered;
+      } else {
+        human->recovery_counter_--;
+      }
+
+    // virus spreading
+    DiffusionGrid* dg = nullptr;
+    dg = rm->GetDiffusionGrid("virus");
+    dg->IncreaseConcentrationBy(human->GetPosition(), 1);
+    } // end if kInfected
+
+  } // end Run
+}; // end SpreadVirusBehaviour
+
+// ---------------------------------------------------------------------------
+struct GetInfectedBehaviour : public BaseBiologyModule {
+  BDM_STATELESS_BM_HEADER(GetInfectedBehaviour, BaseBiologyModule, 1);
+
+  GetInfectedBehaviour() : BaseBiologyModule(gAllEventIds) {}
+
+  void Run(SimObject* so) override {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+
+    auto* human = bdm_static_cast<Human*>(so);
+
+    // incubation time if incubation
+    if (human->state_ == State::kIncubation) {
+      if (human->recovery_counter_ <= 0) {
+        human->state_ = State::kInfected;
+        human->AddBiologyModule(new SpreadVirusBehaviour());
+      } else {
+        human->incubation_counter_--;
+      }
+    } // end if kIncubation
+
+    // infection
+    if (human->state_ == State::kHealthy) {
+      DiffusionGrid* dg = nullptr;
+      dg = rm->GetDiffusionGrid("virus");
+      double concentration = dg->GetConcentration(human->GetPosition());
+
+      if (concentration > 0.001) {
+        human->state_ = State::kIncubation;
+      }
+    } // end infection
+
+  } // end Run
+}; // end GetInfectedBehaviour
 
 }  // namespace bdm
 
