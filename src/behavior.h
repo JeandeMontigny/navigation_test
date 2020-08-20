@@ -43,7 +43,7 @@ struct Navigation : public BaseBiologyModule {
 
     // if human is at the supermarket exit
     if ((position[0] > 1480 || position[0] < 1520) &&
-        (position[1] > -1520 || position[1] < -1480)) {
+        (position[1] < -1380 || position[1] > -1420)) {
       human->RemoveFromSimulation();
     }
 
