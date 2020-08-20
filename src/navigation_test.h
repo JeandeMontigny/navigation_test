@@ -22,6 +22,7 @@
 #include "util_methods.h"
 #include "navigation_util.h"
 #include "a_star.h"
+#include "population_creation.h"
 
 namespace bdm {
 
@@ -32,31 +33,30 @@ inline int Simulate(int argc, const char** argv) {
 
   auto* param = simulation.GetParam();
   auto* sparam = param->GetModuleParam<SimParam>();
-  auto* rm = simulation.GetResourceManager();
   simulation.GetRandom()->SetSeed(2975); // rand() % 10000
 
+  int grid_spacing = sparam->map_pixel_size;
+  int resolution = param->max_bound_/grid_spacing;
+  // ratio diffusion_coef/spacing/spacing = 0.125
+  double diffusion_coef = 0.125*grid_spacing*grid_spacing;
+  double decay_const = 0.25;
+
   //construct geom
-  BuildMaze();
+  BuildSupermarket();
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
-  // human creation
-  Human* human = new Human({-124, -74, 0});
-  human->SetDiameter(sparam->human_diameter);
-  // get destinations for this human
-  std::vector<std::pair<double, double>> destinations_list = GetFirstDestination();
-  human->destinations_list_= destinations_list;
-  human->AddBiologyModule(new Navigation(&navigation_map));
-  rm->push_back(human);
+  // define substance for virus concentration
+  ModelInitializer::DefineSubstance(dg_0_, "virus", diffusion_coef,
+                                    decay_const, resolution);
 
-  // human at test destination
-  human = new Human({124, 74, 0});
-  human->SetDiameter(sparam->human_diameter);
-  rm->push_back(human);
+  // humans creation
+  HumanCreator(-2400, 2400, -1400, 1400, 20, State::kHealthy, &navigation_map);
+  HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
 
   // Run simulation for number_of_steps timestep
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
-    simulation.GetScheduler()->Simulate(1000);
+    simulation.GetScheduler()->Simulate(1);
   }
 
   std::cout << "done" << std::endl;
