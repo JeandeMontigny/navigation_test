@@ -31,6 +31,15 @@ inline double GetMapToBDMLoc(double map_loc) {
 }
 
 // ---------------------------------------------------------------------------
+inline bool IsValidMapPosition(std::vector<std::vector<bool>>* navigation_map,
+                               double bdm_x, double bdm_y) {
+  //TODO: check if destination can be reached
+  double map_x = GetBDMToMapLoc(bdm_x);
+  double map_y = GetBDMToMapLoc(bdm_y);
+  return (*navigation_map)[map_x][map_y];
+} // end IsValidMapPosition
+
+// ---------------------------------------------------------------------------
 inline double GetMapSize() {
   auto* sim = Simulation::GetActive();
   auto* param = sim->GetParam();
@@ -83,6 +92,7 @@ inline double GetMapSize() {
 // ---------------------------------------------------------------------------
 inline std::vector<std::pair<double, double>>
  AddDestinationToList(std::vector<std::pair<double, double>> destinations_list,
+                      std::vector<std::vector<bool>>* navigation_map,
                       double min_x, double max_x, double min_y, double max_y) {
   //TODO: create destination point depending on the environment:
   //      going to a seat? is destination a wall? etc.
@@ -92,8 +102,11 @@ inline std::vector<std::pair<double, double>>
   auto* sim = Simulation::GetActive();
   auto* random = sim->GetRandom();
 
-  double x = random->Uniform(min_x, max_x);
-  double y = random->Uniform(min_y, max_y);
+  double x; double y;
+  do {
+    x = random->Uniform(min_x, max_x);
+    y = random->Uniform(min_y, max_y);
+  } while (!IsValidMapPosition(navigation_map, x, y));
 
   destinations_list.push_back(std::make_pair(GetBDMToMapLoc(x), GetBDMToMapLoc(y)));
 
@@ -102,9 +115,10 @@ inline std::vector<std::pair<double, double>>
 
 // ---------------------------------------------------------------------------
 inline std::vector<std::pair<double, double>>
- GetFirstDestination(double min_x, double max_x, double min_y, double max_y) {
+ GetFirstDestination(std::vector<std::vector<bool>>* navigation_map,
+                     double min_x, double max_x, double min_y, double max_y) {
   std::vector<std::pair<double, double>> destinations_list;
-  destinations_list = AddDestinationToList(destinations_list,
+  destinations_list = AddDestinationToList(destinations_list, navigation_map,
                                            min_x, max_x, min_y, max_y);
 
   return destinations_list;
