@@ -81,22 +81,31 @@ inline double GetMapSize() {
   } // end GetNavigationMap
 
 // ---------------------------------------------------------------------------
-inline std::vector<std::pair<double, double>> AddDestinationToList(std::vector<std::pair<double, double>> destinations_list) {
+inline std::vector<std::pair<double, double>>
+ AddDestinationToList(std::vector<std::pair<double, double>> destinations_list,
+                      double min_x, double max_x, double min_y, double max_y) {
   //TODO: create destination point depending on the environment:
   //      going to a seat? is destination a wall? etc.
   //      destination also depending on human previously created (same seat?)
   // list of list to check if destination is already taken?
 
-  //TODO: remove hard coded destination
-  destinations_list.push_back(std::make_pair(GetBDMToMapLoc(124), GetBDMToMapLoc(74)));
+  auto* sim = Simulation::GetActive();
+  auto* random = sim->GetRandom();
+
+  double x = random->Uniform(min_x, max_x);
+  double y = random->Uniform(min_y, max_y);
+
+  destinations_list.push_back(std::make_pair(GetBDMToMapLoc(x), GetBDMToMapLoc(y)));
 
   return destinations_list;
 } // end AddDestinationToList
 
 // ---------------------------------------------------------------------------
-inline std::vector<std::pair<double, double>> GetFirstDestination() {
+inline std::vector<std::pair<double, double>>
+ GetFirstDestination(double min_x, double max_x, double min_y, double max_y) {
   std::vector<std::pair<double, double>> destinations_list;
-  destinations_list = AddDestinationToList(destinations_list);
+  destinations_list = AddDestinationToList(destinations_list,
+                                           min_x, max_x, min_y, max_y);
 
   return destinations_list;
 } // end GetDestinationsList
