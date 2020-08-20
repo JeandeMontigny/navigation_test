@@ -14,41 +14,105 @@
 
 namespace bdm {
 
-  inline TGeoManager* BuildMaze() {
+  inline TGeoManager* BuildSupermarket() {
 
-    TGeoManager *geom = new TGeoManager("maze", "geometry test for agent navigation");
+      TGeoManager *geom = new TGeoManager("supermarket", "supermarket scenario: 50m * 30m * 4m");
 
-    // materials
-    TGeoMaterial *Vacuum = new TGeoMaterial("vacuum", 0, 0, 0);
-    TGeoMaterial *Fe = new TGeoMaterial("Fe",55.845,26,7.87);
-    // media
-    TGeoMedium *Air = new TGeoMedium("Air", 0, Vacuum);
-    TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
+      // materials
+      TGeoMaterial *Vacuum = new TGeoMaterial("vacuum", 0, 0, 0);
+      TGeoMaterial *Fe = new TGeoMaterial("Fe",55.845,26,7.87);
+      TGeoMaterial *Cement = new TGeoMaterial("Cement",55.845,26,7.87);
+      // media
+      TGeoMedium *Air = new TGeoMedium("Air", 0, Vacuum);
+      TGeoMedium *Concrete = new TGeoMedium("concrete", 0, Cement);
+      TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
 
-    // simulation  volume - 2m * 2m * 2m
-    TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 150, 150, 100);
-    gGeoManager->SetTopVolume(sim_space);
-    gGeoManager->SetTopVisible(0);
-    TGeoVolume *mBlocks;
+      // simulation volume - 50m * 30m * 4m
+      TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 2505, 1505, 205);
+      gGeoManager->SetTopVolume(sim_space);
+      gGeoManager->SetTopVisible(0);
 
-    // maze - 2m * 2m * 2m
-    mBlocks = geom->MakeBox("floor_roof", Iron, 150, 100, 1);
-    mBlocks->SetLineColor(kBlack);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -100));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 100));
 
-    mBlocks = geom->MakeBox("wall_length", Iron, 150, 1, 100);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -100, 0));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 100, 0));
+      TGeoVolume *mBlocks;
 
-    mBlocks = geom->MakeBox("wall_width", Iron, 1, 100, 100);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-150, 0, 0));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(150, 0, 0));
+      // supermarket - 50m * 30m * 4m
+      // outside walls
+      mBlocks = geom->MakeBox("floor_roof", Concrete, 2500, 1500, 5);
+      mBlocks->SetLineColor(kBlack);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -200));
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 200));
+      // length side wall
+      mBlocks = geom->MakeBox("wall_length", Concrete, 2500, 5, 200);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 1500, 0));
+      // length entrance side
+      mBlocks = geom->MakeBox("wall_length_entrance_long", Concrete, 1000, 5, 200);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -1500, 0));
+      mBlocks = geom->MakeBox("wall_length_entrance_short", Concrete, 500, 5, 200);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-2000, -1500, 0));
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(2000, -1500, 0));
+      // width side wall
+      mBlocks = geom->MakeBox("wall_width", Concrete, 5, 1500, 200);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(2500, 0, 0));
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-2500, 0, 0));
 
-    // // inside wall
-    mBlocks = geom->MakeBox("inside_wall", Iron, 0.2, 65, 100);
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(50, 35, 0));
-    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-50, -35, 0));
+      // inside
+      // central shelves (y orientation)
+      int shelf_per_row = 4;
+      int nb_shelf_line = 9;
+      for (int x_shelf = 0; x_shelf < nb_shelf_line; x_shelf++) {
+        int x_position = x_shelf*300 - nb_shelf_line * 125;
+        for (int y_shelf = 0; y_shelf < shelf_per_row; y_shelf++) {
+          int y_position = y_shelf*401 - 250;
+          mBlocks = geom->MakeBox("shelf_center", Iron, 1, 200, 125);
+          sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, -75));
+          for (int i = 0; i < 9 ; i++) {
+            int shelf_height = i*25 - 190;
+            mBlocks = geom->MakeBox("shelf", Iron, 50, 200, 1);
+            sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, shelf_height));
+          }
+        }
+      }
+      // left side shelves (x orientation)
+      shelf_per_row = 2;
+      nb_shelf_line = 7;
+      for (int x_shelf = 0; x_shelf < shelf_per_row; x_shelf++) {
+        int x_position = x_shelf*401 - 2250;
+        for (int y_shelf = 0; y_shelf < nb_shelf_line; y_shelf++) {
+          int y_position = y_shelf*300 - 600;
+          mBlocks = geom->MakeBox("shelf_left_side", Iron, 200, 1, 125);
+          sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, -75));
+          for (int i = 0; i < 9 ; i++) {
+            int shelf_height = i*25 - 200;
+            mBlocks = geom->MakeBox("shelf", Iron, 200, 50, 1);
+            sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, shelf_height));
+          }
+        }
+      }
+      // right side shelves (x orientation)
+      shelf_per_row = 2;
+      nb_shelf_line = 7;
+      for (int x_shelf = 0; x_shelf < shelf_per_row; x_shelf++) {
+        int x_position = x_shelf*401 + 1850;
+        for (int y_shelf = 0; y_shelf < nb_shelf_line; y_shelf++) {
+          int y_position = y_shelf*300 - 600;
+          mBlocks = geom->MakeBox("shelf_right_side", Iron, 200, 1, 125);
+          sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, -75));
+          for (int i = 0; i < 9 ; i++) {
+            int shelf_height = i*25 - 200;
+            mBlocks = geom->MakeBox("shelf", Iron, 200, 50, 1);
+            sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, shelf_height));
+          }
+        }
+      }
+
+      // supermarket checkout (y orientation)
+      int nb_checkout = 5;
+      for (int x_checkout = 0; x_checkout < nb_checkout; x_checkout++) {
+        int x_position = x_checkout*500 - 1250;
+        mBlocks = geom->MakeBox("checkout", Iron, 50, 110, 50);
+        sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, -1000, -125));
+        sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position+150, -1000, -125));
+      }
 
     // close geometry
     geom->CloseGeometry();

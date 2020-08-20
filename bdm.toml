@@ -1,4 +1,4 @@
-number_of_steps = 2
+number_of_steps = 2000
 human_diameter = 50
 map_pixel_size = 2
 
@@ -6,8 +6,8 @@ map_pixel_size = 2
 [simulation]
 time_step = 1
 bound_space = true
-min_bound = -150
-max_bound = 150
+min_bound = -2505
+max_bound = 2505
 run_mechanical_interactions = true
 show_simulation_step = false
 
