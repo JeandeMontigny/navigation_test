@@ -35,11 +35,12 @@ inline int Simulate(int argc, const char** argv) {
   auto* sparam = param->GetModuleParam<SimParam>();
   simulation.GetRandom()->SetSeed(2975); // rand() % 10000
 
-  int grid_spacing = sparam->map_pixel_size;
+  // grid too big if not reduced
+  int grid_spacing = sparam->map_pixel_size*10;
   int resolution = param->max_bound_/grid_spacing;
   // ratio diffusion_coef/spacing/spacing = 0.125
   double diffusion_coef = 0.125*grid_spacing*grid_spacing;
-  double decay_const = 0.25;
+  double decay_const = 0;
 
   //construct geom
   BuildSupermarket();
@@ -49,12 +50,16 @@ inline int Simulate(int argc, const char** argv) {
   // define substance for virus concentration
   ModelInitializer::DefineSubstance(dg_0_, "virus", diffusion_coef,
                                     decay_const, resolution);
+  //TODO: inactive diffusion grid points for points in structure
+  std::cout << "substance initialised" << std::endl;
 
   // humans creation
   HumanCreator(-2400, 2400, -1400, 1400, 20, State::kHealthy, &navigation_map);
   HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
+  std::cout << "population created" << std::endl;
 
   // Run simulation for number_of_steps timestep
+  std::cout << "simulating.." << std::endl;
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
     simulation.GetScheduler()->Simulate(1);
   }
