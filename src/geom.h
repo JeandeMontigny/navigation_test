@@ -28,7 +28,7 @@ namespace bdm {
       TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
 
       // simulation volume - 50m * 30m * 4m
-      TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 2505, 1505, 205);
+      TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 2500, 2500, 2500);
       gGeoManager->SetTopVolume(sim_space);
       gGeoManager->SetTopVisible(0);
 
@@ -58,9 +58,9 @@ namespace bdm {
       // inside
       // central shelves (y orientation)
       int shelf_per_row = 4;
-      int nb_shelf_line = 9;
+      int nb_shelf_line = 7;
       for (int x_shelf = 0; x_shelf < nb_shelf_line; x_shelf++) {
-        int x_position = x_shelf*300 - nb_shelf_line * 125;
+        int x_position = x_shelf*350 - nb_shelf_line * 150;
         for (int y_shelf = 0; y_shelf < shelf_per_row; y_shelf++) {
           int y_position = y_shelf*401 - 250;
           mBlocks = geom->MakeBox("shelf_center", Iron, 1, 200, 125);
@@ -74,11 +74,11 @@ namespace bdm {
       }
       // left side shelves (x orientation)
       shelf_per_row = 2;
-      nb_shelf_line = 7;
+      nb_shelf_line = 6;
       for (int x_shelf = 0; x_shelf < shelf_per_row; x_shelf++) {
         int x_position = x_shelf*401 - 2250;
         for (int y_shelf = 0; y_shelf < nb_shelf_line; y_shelf++) {
-          int y_position = y_shelf*300 - 600;
+          int y_position = y_shelf*350 - 600;
           mBlocks = geom->MakeBox("shelf_left_side", Iron, 200, 1, 125);
           sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, -75));
           for (int i = 0; i < 9 ; i++) {
@@ -90,11 +90,11 @@ namespace bdm {
       }
       // right side shelves (x orientation)
       shelf_per_row = 2;
-      nb_shelf_line = 7;
+      nb_shelf_line = 6;
       for (int x_shelf = 0; x_shelf < shelf_per_row; x_shelf++) {
         int x_position = x_shelf*401 + 1850;
         for (int y_shelf = 0; y_shelf < nb_shelf_line; y_shelf++) {
-          int y_position = y_shelf*300 - 600;
+          int y_position = y_shelf*350 - 600;
           mBlocks = geom->MakeBox("shelf_right_side", Iron, 200, 1, 125);
           sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, y_position, -75));
           for (int i = 0; i < 9 ; i++) {

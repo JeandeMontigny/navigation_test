@@ -6,10 +6,11 @@ map_pixel_size = 2
 [simulation]
 time_step = 1
 bound_space = true
-min_bound = -2505
-max_bound = 2505
+min_bound = -2500
+max_bound = 2500
 run_mechanical_interactions = true
 show_simulation_step = false
+calculate_gradients = false
 
 # ----------------------------------------------------------------------------
 [visualization]
