@@ -41,13 +41,11 @@ namespace bdm {
       human->state_ = state;
 
       // get destinations for this human
-      std::vector<std::pair<double, double>> destinations_list = GetFirstDestination(min_x, max_x, min_y, max_y);
-      destinations_list = AddDestinationToList(destinations_list,
+      std::vector<std::pair<double, double>> destinations_list = GetFirstDestination(navigation_map, min_x, max_x, min_y, max_y);
+      destinations_list = AddDestinationToList(destinations_list, navigation_map,
                                                min_x, max_x, min_y, max_y);
-
-      GetFirstDestination(min_x, max_x, min_y, max_y);
-      destinations_list = AddDestinationToList(destinations_list,
-                                               1500, 1500, -1500, -1500);
+      destinations_list = AddDestinationToList(destinations_list, navigation_map,
+                                               1500, 1500, -1400, -1400);
 
       human->destinations_list_= destinations_list;
       // add biology modules
