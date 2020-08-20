@@ -32,10 +32,11 @@ struct Navigation : public BaseBiologyModule {
 
 
   void Run(SimObject* so) override {
-    // auto* sim = Simulation::GetActive();
-    // auto* random = sim->GetRandom();
-    // auto* param = sim->GetParam();
-    // auto* sparam = param->GetModuleParam<SimParam>();
+    auto* sim = Simulation::GetActive();
+    // execute this BM only evey x steps to allow diffusion
+    if (sim->GetScheduler()->GetSimulatedSteps() % 5 != 0) {
+      return;
+    }
 
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
