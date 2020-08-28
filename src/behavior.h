@@ -14,6 +14,9 @@
 #include "sim-param.h"
 #include "a_star.h"
 #include "navigation_util.h"
+#include "core/scheduler.h"
+#include "core/diffusion_grid.h"
+#include "core/resource_manager.h"
 
 namespace bdm {
 

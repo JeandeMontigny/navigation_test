@@ -8,7 +8,9 @@
 #ifndef NAVIGATION_UTIL_
 #define NAVIGATION_UTIL_
 
-#include "geom.h"
+#include "core/geom.h"
+#include "core/simulation.h"
+#include "core/param/param.h"
 #include "sim-param.h"
 
 namespace bdm {
