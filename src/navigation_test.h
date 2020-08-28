@@ -15,11 +15,12 @@
 #define NAVIGATION_TEST_H_
 
 #include "biodynamo.h"
+#include "core/simulation.h"
 #include "human.h"
 #include "behavior.h"
 #include "sim-param.h"
 #include "geom.h"
-#include "util_methods.h"
+// #include "util_methods.h"
 #include "navigation_util.h"
 #include "a_star.h"
 #include "population_creation.h"
@@ -36,14 +37,14 @@ inline int Simulate(int argc, const char** argv) {
   simulation.GetRandom()->SetSeed(2975); // rand() % 10000
 
   // grid too big if not reduced
-  int grid_spacing = sparam->map_pixel_size*10;
+  int grid_spacing = sparam->map_pixel_size;
   int resolution = param->max_bound_/grid_spacing;
   // ratio diffusion_coef/spacing/spacing = 0.125
   double diffusion_coef = 0.125*grid_spacing*grid_spacing;
   double decay_const = 0;
 
   //construct geom
-  BuildSupermarket();
+  BuildMaze();
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
@@ -54,8 +55,24 @@ inline int Simulate(int argc, const char** argv) {
   std::cout << "substance initialised" << std::endl;
 
   // humans creation
-  HumanCreator(-2400, 2400, -1400, 1400, 20, State::kHealthy, &navigation_map);
-  HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
+  // HumanCreator(-2400, 2400, -1400, 1400, 20, State::kHealthy, &navigation_map);
+  // HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
+
+  auto* rm = simulation.GetResourceManager();
+  // kHealthy, GetInfectedBehaviour
+  Human* human = new Human({-124, -74, 0});
+  human->SetDiameter(sparam->human_diameter);
+  human->state_ = State::kHealthy;
+  human->AddBiologyModule(new GetInfectedBehaviour());
+  rm->push_back(human);
+
+  // kInfected, SpreadVirusBehaviour
+  human = new Human({124, 74, 0});
+  human->SetDiameter(sparam->human_diameter);
+  human->state_ = State::kInfected;
+  human->AddBiologyModule(new SpreadVirusBehaviour());
+  rm->push_back(human);
+
   std::cout << "population created" << std::endl;
 
   // Run simulation for number_of_steps timestep
