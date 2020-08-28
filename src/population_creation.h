@@ -27,6 +27,12 @@ namespace bdm {
     auto* sparam = param->GetModuleParam<SimParam>();
     auto* random = sim->GetRandom();
 
+    if (min_x <= param->min_bound_ || min_y <= param->min_bound_ ||
+        max_x >= param->max_bound_ || max_y >= param->max_bound_) {
+      std::cout << "human creation outside of simulation space!" << std::endl;
+      return;
+    }
+
     double x, y;
     double z = 150;
 
@@ -49,6 +55,9 @@ namespace bdm {
 
       human->destinations_list_= destinations_list;
       // add biology modules
+      if (state == State::kInfected) {
+        human->AddBiologyModule(new SpreadVirusBehaviour());
+      }
       human->AddBiologyModule(new Navigation(navigation_map));
       human->AddBiologyModule(new GetInfectedBehaviour());
       rm->push_back(human);
