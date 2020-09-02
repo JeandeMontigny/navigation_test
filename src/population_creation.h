@@ -64,6 +64,30 @@ namespace bdm {
     }
   }  // end CellCreator
 
+  // ---------------------------------------------------------------------------
+    static std::vector<Double3> GetSeatsList() {
+      std::vector<Double3> seats_list;
+      for (int j = -5; j < 7; j++) {
+        int x_position = j*75+45;
+        // left rows
+        seats_list.push_back({x_position, -95, 0});
+        seats_list.push_back({x_position, -50, 0});
+        // right rows
+        if (j!=2 && j!=3) {
+          seats_list.push_back({x_position, 95, 0});
+          seats_list.push_back({x_position, 50, 0});
+        }
+      }
+
+      return seats_list;
+    } // end GetSeatsList
+
+// ---------------------------------------------------------------------------
+  static bool SeatTaken(Double3 seat, Double3 agent) {
+    return (agent[0] > seat[0]-20 || agent[0] < seat[0]+20 &&
+            agent[1] > seat[1]-20 || agent[1] < seat[1]+20);
+  } // end SeatTaken
+
 // ---------------------------------------------------------------------------
   static void AddPassenger(int number_of_passenger, State state,
                            std::vector<std::vector<bool>>* navigation_map) {
@@ -73,9 +97,55 @@ namespace bdm {
     auto* sparam = param->GetModuleParam<SimParam>();
     auto* random = sim->GetRandom();
 
-    //TODO: check empty seats, and select a random one
-    // create new human at bus entrance and add this seat as destination
+    // agent created at bus entrance + waiting queu in y direction
+    // TODO: queu in x direction, alongside the bus?
+    for (int i = 0; i < number_of_passenger; i ++) {
+      human = new Human({-500, 130 + 55 * i, 0});
+      human->SetDiameter(sparam->human_diameter);
+      human->state_ = state;
+      // add biology modules
+      human->AddBiologyModule(new Navigation());
+      if (state == State::kHealthy) {
+        human->AddBiologyModule(new GetInfectedBehaviour());
+      }
+      else {
+        human->AddBiologyModule(new SpreadVirusBehaviour());
+      }
+      // check empty seats
+      std::vector<Double3> agents_position_list;
+      std::vector<Double3> seats_list = GetSeatsList();
+      std::vector<Double3> empty_seats_list;
 
+      auto get_empty_seats = [&seats_list, &empty_seats_list](const auto* neighbor) {
+        auto* hu = bdm_static_cast<const Human*>(neighbor);
+        agents_position_list.push_back(hu->GetPosition());
+      };
+
+      auto* ctxt = sim->GetExecutionContext();
+      ctxt->ApplyOnAllElementsParallel(get_empty_seats);
+
+      for (int i = 0; i < seats_list.size(); i++) {
+        bool taken = false;
+        for (int j = 0; j < agents_position_list.size(); j++) {
+          if (SeatTaken(seats_list[i], agents_position_list[j])) {
+            taken = true;
+            break;
+          }
+        }
+        if (!taken) {
+          empty_seats_list.push_back(seats_list[i]);
+        }
+      }
+
+      // add a random empty seat as destination
+      auto dest = empty_seats_list[(int)random->Uniform(0, empty_seats_list.size())];
+      std::vector<std::pair<double, double>> destinations_list =
+        std::make_pair(dest[0], dest[1]);
+
+      human->destinations_list_= destinations_list;
+
+      rm->push_back(human);
+    } // end for number_of_passenger
   } // end AddPassenger
 
 // ---------------------------------------------------------------------------
@@ -95,20 +165,24 @@ namespace bdm {
     rm->push_back(human);
     // passenger already in the bus
     // kHealthy, GetInfectedBehaviour
+    //TODO: values for passenger_position_list
     Double3 passenger_position_list [10] = {, };
 
     for (int i = 0; i < passenger_position_list.size(); i++) {
       human = new Human(passenger_position_list[i]);
       human->SetDiameter(sparam->human_diameter);
       human->state_ = State::kHealthy;
+      human->AddBiologyModule(new Navigation());
       human->AddBiologyModule(new GetInfectedBehaviour());
       rm->push_back(human);
     }
     // passenger already in bus
     // State::kInfected, SpreadVirusBehaviour
+    //TODO: position for infected passenger
     human = new Human({x, y, z});
     human->SetDiameter(sparam->human_diameter);
     human->state_ = State::kInfected;
+    human->AddBiologyModule(new Navigation());
     human->AddBiologyModule(new SpreadVirusBehaviour());
     rm->push_back(human);
 
