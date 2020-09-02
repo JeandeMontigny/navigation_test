@@ -153,7 +153,7 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
       dg = rm->GetDiffusionGrid("virus");
       double concentration = dg->GetConcentration(human->GetPosition());
 
-      if (concentration > 0.001) {
+      if (concentration > 1e-6) {
         human->state_ = State::kIncubation;
       }
     } // end infection
