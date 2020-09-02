@@ -24,6 +24,7 @@
 #include "navigation_util.h"
 #include "a_star.h"
 #include "population_creation.h"
+#include "core/diffusion_grid.h"
 
 namespace bdm {
 
@@ -38,7 +39,7 @@ inline int Simulate(int argc, const char** argv) {
 
   // grid too big if not reduced
   int grid_spacing = sparam->map_pixel_size;
-  int resolution = param->max_bound_/grid_spacing;
+  int resolution = param->max_bound_*2/grid_spacing;
   // ratio diffusion_coef/spacing/spacing = 0.125
   double diffusion_coef = 0.125*grid_spacing*grid_spacing;
   double decay_const = 0;
@@ -72,6 +73,19 @@ inline int Simulate(int argc, const char** argv) {
   human->state_ = State::kInfected;
   human->AddBiologyModule(new SpreadVirusBehaviour());
   rm->push_back(human);
+
+  human = new Human({0, 0, 0});
+  human->SetDiameter(sparam->human_diameter);
+  human->state_ = State::kInfected;
+  human->AddBiologyModule(new SpreadVirusBehaviour());
+  rm->push_back(human);
+
+  human = new Human({0, 74, 0});
+  human->SetDiameter(sparam->human_diameter);
+  human->state_ = State::kInfected;
+  human->AddBiologyModule(new GetInfectedBehaviour());
+  rm->push_back(human);
+
 
   std::cout << "population created" << std::endl;
 
