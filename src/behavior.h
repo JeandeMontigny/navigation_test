@@ -41,6 +41,7 @@ struct Navigation : public BaseBiologyModule {
       return;
     }
 
+    auto* random = sim->GetRandom();
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
 

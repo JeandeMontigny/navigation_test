@@ -60,7 +60,7 @@ inline int Simulate(int argc, const char** argv) {
   // HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
 
   //bus population creation
-  InitialBusPopulationCreation(navigation_map);
+  InitialBusPopulationCreation(&navigation_map);
 
   std::cout << "population created" << std::endl;
 
@@ -71,10 +71,10 @@ inline int Simulate(int argc, const char** argv) {
     // TODO passenger pop in at bus entrace position
     // add destination to an empty seat
     if (i == 100) {
-      AddPassenger(2, State::kHealthy, navigation_map);
+      AddPassenger(2, State::kHealthy, &navigation_map);
     }
     if (i == 5000) {
-      AddPassenger(1, State::kInfected, navigation_map);
+      AddPassenger(1, State::kInfected, &navigation_map);
     }
   }
 
