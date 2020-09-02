@@ -44,11 +44,19 @@ struct Navigation : public BaseBiologyModule {
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
 
-    // if human is at the supermarket exit
-    //TODO: exit bus position
-    if ((position[0] > 1480 || position[0] < 1520) &&
-        (position[1] < -1380 || position[1] > -1420)) {
+    // if human is at the bus exit
+    if ((position[0] > 220 || position[0] < 240) &&
+        (position[1] < -110 || position[1] > -140)) {
       human->RemoveFromSimulation();
+    }
+
+    // some passengers (x%) leave if sim step == y
+    // add destination to bus exit
+    if (sim->GetScheduler()->GetSimulatedSteps() % 4000 == 0
+        && random->Uniform() < 0.2) {
+      human->destinations_list_ =
+        AddDestinationToList(human->destinations_list_, navigation_map_,
+                             230, 230, -120, -120);
     }
 
     std::vector<std::vector<double>> path;
