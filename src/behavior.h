@@ -46,8 +46,8 @@ struct Navigation : public BaseBiologyModule {
     const auto& position = human->GetPosition();
 
     // if human is at the bus exit
-    if ((position[0] > 220 || position[0] < 240) &&
-        (position[1] < -110 || position[1] > -140)) {
+    if ((position[0] > 220 && position[0] < 240) &&
+        (position[1] < -110 && position[1] > -130)) {
       human->RemoveFromSimulation();
     }
 
