@@ -6,9 +6,9 @@ map_pixel_size = 4
 [simulation]
 time_step = 1
 bound_space = true
-min_bound = -150
-max_bound = 150
-run_mechanical_interactions = true
+min_bound = -550
+max_bound = 550
+run_mechanical_interactions = false
 show_simulation_step = false
 leaking_edges = false
 calculate_gradients = false

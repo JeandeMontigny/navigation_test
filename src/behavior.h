@@ -45,6 +45,7 @@ struct Navigation : public BaseBiologyModule {
     const auto& position = human->GetPosition();
 
     // if human is at the supermarket exit
+    //TODO: exit bus position
     if ((position[0] > 1480 || position[0] < 1520) &&
         (position[1] < -1380 || position[1] > -1420)) {
       human->RemoveFromSimulation();
@@ -117,6 +118,14 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
       }
 
     // virus spreading
+    //TODO: conic spreading of virus
+
+    //TODO: breathing spread:
+    //        -> low distance and concentration, but pusling regularly
+
+    //TODO: sneez or coughing:
+    //        -> long distance and high concentration. rarely occurs
+
     DiffusionGrid* dg = nullptr;
     dg = rm->GetDiffusionGrid("virus");
     dg->IncreaseConcentrationBy(human->GetPosition(), 1);

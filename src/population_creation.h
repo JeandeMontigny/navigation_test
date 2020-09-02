@@ -64,6 +64,56 @@ namespace bdm {
     }
   }  // end CellCreator
 
+// ---------------------------------------------------------------------------
+  static void AddPassenger(int number_of_passenger, State state,
+                           std::vector<std::vector<bool>>* navigation_map) {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+    auto* param = sim->GetParam();
+    auto* sparam = param->GetModuleParam<SimParam>();
+    auto* random = sim->GetRandom();
+
+    //TODO: check empty seats, and select a random one
+    // create new human at bus entrance and add this seat as destination
+
+  } // end AddPassenger
+
+// ---------------------------------------------------------------------------
+  static void InitialBusPopulationCreation() {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+    auto* param = sim->GetParam();
+    auto* sparam = param->GetModuleParam<SimParam>();
+    auto* random = sim->GetRandom();
+
+    Human* human;
+    // driver: kHealthy, GetInfectedBehaviour
+    human = new Human({-475, -65, 0});
+    human->SetDiameter(sparam->human_diameter);
+    human->state_ = State::kHealthy;
+    human->AddBiologyModule(new GetInfectedBehaviour());
+    rm->push_back(human);
+    // passenger already in the bus
+    // kHealthy, GetInfectedBehaviour
+    Double3 passenger_position_list [10] = {, };
+
+    for (int i = 0; i < passenger_position_list.size(); i++) {
+      human = new Human(passenger_position_list[i]);
+      human->SetDiameter(sparam->human_diameter);
+      human->state_ = State::kHealthy;
+      human->AddBiologyModule(new GetInfectedBehaviour());
+      rm->push_back(human);
+    }
+    // passenger already in bus
+    // State::kInfected, SpreadVirusBehaviour
+    human = new Human({x, y, z});
+    human->SetDiameter(sparam->human_diameter);
+    human->state_ = State::kInfected;
+    human->AddBiologyModule(new SpreadVirusBehaviour());
+    rm->push_back(human);
+
+  } // end BusPopulationCreation
+
 }
 
 #endif // POPULATION_CREATION_

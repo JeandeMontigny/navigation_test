@@ -45,7 +45,7 @@ inline int Simulate(int argc, const char** argv) {
   double decay_const = 0;
 
   //construct geom
-  BuildMaze();
+  BuildBus();
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
 
@@ -59,33 +59,24 @@ inline int Simulate(int argc, const char** argv) {
   // HumanCreator(-2400, 2400, -1400, 1400, 20, State::kHealthy, &navigation_map);
   // HumanCreator(-2400, 2400, -1400, 1400, 1, State::kInfected, &navigation_map);
 
-  auto* rm = simulation.GetResourceManager();
-  // kHealthy, GetInfectedBehaviour
-  Human* human = new Human({-124, -74, 0});
-  human->SetDiameter(sparam->human_diameter);
-  human->state_ = State::kHealthy;
-  human->AddBiologyModule(new GetInfectedBehaviour());
-  rm->push_back(human);
+  //bus population creation
+  InitialBusPopulationCreation(navigation_map);
 
-  // kInfected, SpreadVirusBehaviour
-  human = new Human({124, 74, 0});
-  human->SetDiameter(sparam->human_diameter);
-  human->state_ = State::kInfected;
-  human->AddBiologyModule(new SpreadVirusBehaviour());
-  rm->push_back(human);
-
-  human = new Human({0, 0, 0});
-  human->SetDiameter(sparam->human_diameter);
-  human->state_ = State::kInfected;
-  human->AddBiologyModule(new SpreadVirusBehaviour());
-  rm->push_back(human);
-
-  human = new Human({0, 74, 0});
-  human->SetDiameter(sparam->human_diameter);
-  human->state_ = State::kInfected;
-  human->AddBiologyModule(new GetInfectedBehaviour());
-  rm->push_back(human);
-
+  // auto* rm = simulation.GetResourceManager();
+  // Human* human;
+  // // Driver: kHealthy, GetInfectedBehaviour
+  // human = new Human({-475, -65, 0});
+  // human->SetDiameter(sparam->human_diameter);
+  // human->state_ = State::kHealthy;
+  // human->AddBiologyModule(new GetInfectedBehaviour());
+  // rm->push_back(human);
+  //
+  // // passenger: kHealthy, GetInfectedBehaviour
+  // human = new Human({-95, -100, 0});
+  // human->SetDiameter(sparam->human_diameter);
+  // human->state_ = State::kHealthy;
+  // human->AddBiologyModule(new GetInfectedBehaviour());
+  // rm->push_back(human);
 
   std::cout << "population created" << std::endl;
 
@@ -93,6 +84,11 @@ inline int Simulate(int argc, const char** argv) {
   std::cout << "simulating.." << std::endl;
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
     simulation.GetScheduler()->Simulate(1);
+    // TODO passenger pop in at bus entrace position
+    // add destination to an empty seat
+    if (i == 100) {
+      AddPassenger(1, State::kHealthy, navigation_map);
+    }
   }
 
   std::cout << "done" << std::endl;
