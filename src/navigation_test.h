@@ -62,22 +62,6 @@ inline int Simulate(int argc, const char** argv) {
   //bus population creation
   InitialBusPopulationCreation(navigation_map);
 
-  // auto* rm = simulation.GetResourceManager();
-  // Human* human;
-  // // Driver: kHealthy, GetInfectedBehaviour
-  // human = new Human({-475, -65, 0});
-  // human->SetDiameter(sparam->human_diameter);
-  // human->state_ = State::kHealthy;
-  // human->AddBiologyModule(new GetInfectedBehaviour());
-  // rm->push_back(human);
-  //
-  // // passenger: kHealthy, GetInfectedBehaviour
-  // human = new Human({-95, -100, 0});
-  // human->SetDiameter(sparam->human_diameter);
-  // human->state_ = State::kHealthy;
-  // human->AddBiologyModule(new GetInfectedBehaviour());
-  // rm->push_back(human);
-
   std::cout << "population created" << std::endl;
 
   // Run simulation for number_of_steps timestep
@@ -87,7 +71,10 @@ inline int Simulate(int argc, const char** argv) {
     // TODO passenger pop in at bus entrace position
     // add destination to an empty seat
     if (i == 100) {
-      AddPassenger(1, State::kHealthy, navigation_map);
+      AddPassenger(2, State::kHealthy, navigation_map);
+    }
+    if (i == 5000) {
+      AddPassenger(1, State::kInfected, navigation_map);
     }
   }
 
