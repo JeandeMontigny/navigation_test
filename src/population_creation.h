@@ -105,7 +105,7 @@ namespace bdm {
       human->SetDiameter(sparam->human_diameter);
       human->state_ = state;
       // add biology modules
-      human->AddBiologyModule(new Navigation());
+      human->AddBiologyModule(new Navigation(navigation_map));
       if (state == State::kHealthy) {
         human->AddBiologyModule(new GetInfectedBehaviour());
       }
@@ -165,7 +165,7 @@ namespace bdm {
     // passenger already in the bus
     // kHealthy, Navigation, GetInfectedBehaviour
     std::vector<Double3> passenger_position_list = {
-      {-50, -50, 0}, {-30, -50, 0}, {420, -95, 0}, {45, -95, 0}, {45, 95, 0},
+      {-50, -50, 0}, {-30, -50, 0}, {420, -95, 0}, {-30, -95, 0}, {45, 95, 0},
       {120, 95, 0}, {-180, 50, 0}, {-30, 50, 0}, {-30, 95, 0}, {495, -95, 0}
     };
 
@@ -173,7 +173,7 @@ namespace bdm {
       human = new Human(passenger_position_list[i]);
       human->SetDiameter(sparam->human_diameter);
       human->state_ = State::kHealthy;
-      human->AddBiologyModule(new Navigation());
+      human->AddBiologyModule(new Navigation(navigation_map));
       human->AddBiologyModule(new GetInfectedBehaviour());
       rm->push_back(human);
     }
@@ -182,7 +182,7 @@ namespace bdm {
     human = new Human({45, -95, 0});
     human->SetDiameter(sparam->human_diameter);
     human->state_ = State::kInfected;
-    human->AddBiologyModule(new Navigation());
+    human->AddBiologyModule(new Navigation(navigation_map));
     human->AddBiologyModule(new SpreadVirusBehaviour());
     rm->push_back(human);
 
