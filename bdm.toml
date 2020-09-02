@@ -1,23 +1,27 @@
 number_of_steps = 2000
 human_diameter = 50
-map_pixel_size = 2
+map_pixel_size = 4
 
 # ----------------------------------------------------------------------------
 [simulation]
 time_step = 1
 bound_space = true
-min_bound = -2500
-max_bound = 2500
+min_bound = -150
+max_bound = 150
 run_mechanical_interactions = true
 show_simulation_step = false
+leaking_edges = false
 calculate_gradients = false
 
 # ----------------------------------------------------------------------------
 [visualization]
 export = false
 live = false
-export_interval = 1
+export_interval = 10
 
     [[visualize_sim_object]]
     name = "Human"
     additional_data_members = [ "state_" ]
+
+    [[visualize_diffusion]]
+    name = "virus"
