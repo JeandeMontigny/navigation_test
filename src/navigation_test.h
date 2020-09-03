@@ -47,12 +47,19 @@ inline int Simulate(int argc, const char** argv) {
   //construct geom
   BuildBus();
   // construct the 2d array for navigation
-  std::vector<std::vector<bool>> navigation_map = GetNavigationMap();
+  std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-45);
+
+  // print navigation_map
+  // for (int map_x = 0; map_x < navigation_map.size(); map_x++) {
+  //   for (int map_y = 0; map_y < navigation_map[0].size(); map_y++) {
+  //     std::cout << navigation_map[map_x][map_y];
+  //   }
+  //   std::cout << std::endl;
+  // }
 
   // define substance for virus concentration
   ModelInitializer::DefineSubstance(dg_0_, "virus", diffusion_coef,
                                     decay_const, resolution);
-  //TODO: inactive diffusion grid points for points in structure
   std::cout << "substance initialised" << std::endl;
 
   // humans creation
@@ -68,12 +75,16 @@ inline int Simulate(int argc, const char** argv) {
   std::cout << "simulating.." << std::endl;
   for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
     simulation.GetScheduler()->Simulate(1);
+    if (i % 1000 == 0) {
+      std::cout << "step " << i << " out of "
+                << sparam->number_of_steps << std::endl;
+    }
     // TODO passenger pop in at bus entrace position
     // add destination to an empty seat
     if (i == 100) {
       AddPassenger(2, State::kHealthy, &navigation_map);
     }
-    if (i == 5000) {
+    if (i == 1000) {
       AddPassenger(1, State::kInfected, &navigation_map);
     }
   }
