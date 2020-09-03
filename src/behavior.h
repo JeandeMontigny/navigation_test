@@ -46,8 +46,8 @@ struct Navigation : public BaseBiologyModule {
     const auto& position = human->GetPosition();
 
     // if human is at the bus exit
-    if ((position[0] > 220 && position[0] < 240) &&
-        (position[1] < -110 && position[1] > -130)) {
+    if (position[0] > 180 && position[0] < 200 &&
+        position[1] > 110 && position[1] < 130) {
       human->RemoveFromSimulation();
     }
 
@@ -57,7 +57,7 @@ struct Navigation : public BaseBiologyModule {
         && random->Uniform() < 0.2) {
       human->destinations_list_ =
         AddDestinationToList(human->destinations_list_, navigation_map_,
-                             230, 230, -120, -120);
+                             190, 190, 120, 120);
     }
 
     std::vector<std::vector<double>> path;
