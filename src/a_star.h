@@ -64,19 +64,19 @@ namespace bdm {
 
     double row = dest.first;
     double col = dest.second;
-    std::vector<std::vector<double>> Path;
+    std::vector<std::vector<double>> path;
 
     while (!(nodeDetails[row][col].parent_i == row
              && nodeDetails[row][col].parent_j == col )) {
-      Path.push_back({row, col});
+      path.push_back({row, col});
       double temp_row = nodeDetails[row][col].parent_i;
       double temp_col = nodeDetails[row][col].parent_j;
       row = temp_row;
       col = temp_col;
     }
-    Path.push_back({row, col});
+    path.push_back({row, col});
 
-    return Path;
+    return path;
   } // end TracePath
 
 // ---------------------------------------------------------------------------
@@ -318,6 +318,12 @@ namespace bdm {
 
       } // end !openList.empty
       // When the open list is empty, the destination node has not been found
+      std::cout << "warning: couldn't find a way from "
+                << GetMapToBDMLoc(src.first) << ", " << GetMapToBDMLoc(src.second)
+                << " (map loc: " << src.first << ", " << src.second << ") to "
+                << GetMapToBDMLoc(dest.first) << ", " << GetMapToBDMLoc(dest.second)
+                << " (map loc: " << dest.first << ", " << dest.second << ")"
+                << std::endl;
       return path;
   } // end aStarSearch
 
