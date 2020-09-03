@@ -16,12 +16,12 @@
 namespace bdm {
 
 // ---------------------------------------------------------------------------
-inline double GetBDMToMapLoc(double bdm_loc) {
+inline int GetBDMToMapLoc(double bdm_loc) {
   auto* sim = Simulation::GetActive();
   auto* param = sim->GetParam();
   auto* sparam = param->GetModuleParam<SimParam>();
 
-  return (bdm_loc + param->max_bound_)/sparam->map_pixel_size;
+  return nearbyint((bdm_loc + param->max_bound_)/sparam->map_pixel_size);
 }
 // ---------------------------------------------------------------------------
 inline double GetMapToBDMLoc(double map_loc) {
@@ -36,8 +36,8 @@ inline double GetMapToBDMLoc(double map_loc) {
 inline bool IsValidMapPosition(std::vector<std::vector<bool>>* navigation_map,
                                double bdm_x, double bdm_y) {
   //TODO: check if destination can be reached
-  double map_x = GetBDMToMapLoc(bdm_x);
-  double map_y = GetBDMToMapLoc(bdm_y);
+  int map_x = GetBDMToMapLoc(bdm_x);
+  int map_y = GetBDMToMapLoc(bdm_y);
   return (*navigation_map)[map_x][map_y];
 } // end IsValidMapPosition
 
@@ -51,7 +51,7 @@ inline double GetMapSize() {
 }
 
 // ---------------------------------------------------------------------------
-  inline std::vector<std::vector<bool>> GetNavigationMap() {
+  inline std::vector<std::vector<bool>> GetNavigationMap(double pos_z) {
     auto* sim = Simulation::GetActive();
     auto* param = sim->GetParam();
     auto* sparam = param->GetModuleParam<SimParam>();
@@ -63,26 +63,26 @@ inline double GetMapSize() {
       for (int y = 0; y < map_size ; y ++) {
         double pos_x = GetMapToBDMLoc(x);
         double pos_y = GetMapToBDMLoc(y);
-        Double3 position = {pos_x, pos_y, 0.0};
+        Double3 position = {pos_x, pos_y, pos_z};
         if (IsInsideStructure(position) ||
             // x axis
-            ObjectInbetween({pos_x - sparam->human_diameter/2, pos_y, 0.0},
-                            {pos_x + sparam->human_diameter/2, pos_y, 0.0}) ||
+            ObjectInbetween({pos_x - sparam->human_diameter/2, pos_y, pos_z},
+                            {pos_x + sparam->human_diameter/2, pos_y, pos_z}) ||
             // y axis
-            ObjectInbetween({pos_x, pos_y - sparam->human_diameter/2, 0.0},
-                            {pos_x, pos_y + sparam->human_diameter/2, 0.0}) ||
+            ObjectInbetween({pos_x, pos_y - sparam->human_diameter/2, pos_z},
+                            {pos_x, pos_y + sparam->human_diameter/2, pos_z}) ||
             // diagonals
             ObjectInbetween({pos_x - sparam->human_diameter/2 * 0.7,
-                             pos_y - sparam->human_diameter/2 * 0.7, 0.0},
+                             pos_y - sparam->human_diameter/2 * 0.7, pos_z},
                             {pos_x + sparam->human_diameter/2 * 0.7,
-                             pos_y + sparam->human_diameter/2 * 0.7, 0.0}) ||
+                             pos_y + sparam->human_diameter/2 * 0.7, pos_z}) ||
            ObjectInbetween({pos_x - sparam->human_diameter/2 * 0.7,
-                            pos_y + sparam->human_diameter/2 * 0.7, 0.0},
+                            pos_y + sparam->human_diameter/2 * 0.7, pos_z},
                            {pos_x + sparam->human_diameter/2 * 0.7,
-                            pos_y - sparam->human_diameter/2 * 0.7, 0.0}) ||
+                            pos_y - sparam->human_diameter/2 * 0.7, pos_z}) ||
             // z axis
-            ObjectInbetween({pos_x, pos_y,-sparam->human_diameter/2},
-                            {pos_x, pos_y, sparam->human_diameter/2}) ) {
+            ObjectInbetween({pos_x, pos_y, pos_z - sparam->human_diameter/2},
+                            {pos_x, pos_y, pos_z + sparam->human_diameter/2}) ) {
           navigation_map[x][y] = false;
         }
       }
