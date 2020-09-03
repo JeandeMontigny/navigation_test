@@ -53,7 +53,7 @@ struct Navigation : public BaseBiologyModule {
 
     // some passengers (x%) leave if sim step == y
     // add destination to bus exit
-    if (sim->GetScheduler()->GetSimulatedSteps() % 4000 == 0
+    if (sim->GetScheduler()->GetSimulatedSteps() % 2000 == 0
         && random->Uniform() < 0.2) {
       human->destinations_list_ =
         AddDestinationToList(human->destinations_list_, navigation_map_,
@@ -127,7 +127,11 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
       }
 
     // virus spreading
+    DiffusionGrid* dg = nullptr;
+    dg = rm->GetDiffusionGrid("virus");
+
     //TODO: conic spreading of virus
+    dg->IncreaseConcentrationBy(human->GetPosition(), 1);
 
     //TODO: breathing spread:
     //        -> low distance and concentration, but pusling regularly
@@ -135,9 +139,6 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
     //TODO: sneez or coughing:
     //        -> long distance and high concentration. rarely occurs
 
-    DiffusionGrid* dg = nullptr;
-    dg = rm->GetDiffusionGrid("virus");
-    dg->IncreaseConcentrationBy(human->GetPosition(), 1);
     } // end if kInfected
 
   } // end Run
@@ -154,6 +155,12 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
     auto* rm = sim->GetResourceManager();
 
     auto* human = bdm_static_cast<Human*>(so);
+
+    // nothing to do if already infected, so remove BM
+    if (human->state_ == State::kInfected) {
+      human->RemoveBiologyModule(this);
+      return;
+    }
 
     // incubation time if incubation
     if (human->state_ == State::kIncubation) {
