@@ -84,8 +84,8 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   static bool SeatTaken(Double3 seat, Double3 agent) {
-    return ((agent[0] > seat[0]-20 || agent[0] < seat[0]+20) &&
-            (agent[1] > seat[1]-20 || agent[1] < seat[1]+20));
+    return (agent[0] > seat[0]-20 && agent[0] < seat[0]+20 &&
+            agent[1] > seat[1]-20 && agent[1] < seat[1]+20);
   } // end SeatTaken
 
 // ---------------------------------------------------------------------------
@@ -140,7 +140,8 @@ namespace bdm {
       // add a random empty seat as destination
       auto dest = empty_seats_list[(int)random->Uniform(0, empty_seats_list.size())];
       std::vector<std::pair<double, double>> destinations_list;
-      destinations_list.push_back(std::make_pair(dest[0], dest[1]));
+      destinations_list.push_back(std::make_pair(
+        GetBDMToMapLoc(dest[0]), GetBDMToMapLoc(dest[1])));
 
       human->destinations_list_= destinations_list;
 
