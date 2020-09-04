@@ -73,7 +73,7 @@ inline int Simulate(int argc, const char** argv) {
 
   // Run simulation for number_of_steps timestep
   std::cout << "simulating.." << std::endl;
-  for (uint64_t i = 0; i < sparam->number_of_steps; ++i) {
+  for (uint64_t i = 0; i <= sparam->number_of_steps; ++i) {
     simulation.GetScheduler()->Simulate(1);
     if (i % 1000 == 0) {
       std::cout << "step " << i << " out of "
@@ -81,11 +81,37 @@ inline int Simulate(int argc, const char** argv) {
     }
     // TODO passenger pop in at bus entrace position
     // add destination to an empty seat
-    if (i == 100) {
-      AddPassenger(2, State::kHealthy, &navigation_map);
+    // first bus stop
+    if (i == 50) {
+      AddPassenger(State::kHealthy, &navigation_map);
     }
-    if (i == 1000) {
-      AddPassenger(1, State::kInfected, &navigation_map);
+    if (i == 100) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 150) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 200) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 250) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 300) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 350) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    // second bus stop
+    if (i == 2050) {
+      AddPassenger(State::kInfected, &navigation_map);
+    }
+    if (i == 2100) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 2150) {
+      AddPassenger(State::kHealthy, &navigation_map);
     }
   }
 
