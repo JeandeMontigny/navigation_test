@@ -54,6 +54,10 @@ namespace bdm {
       mBlocks = geom->MakeBox("right_side_top", Iron, 50, 1, 25);
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-470, 125, 100));
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(200, 125, 100));
+      // right side doors
+      mBlocks = geom->MakeBox("right_side_top", Iron, 50, 1, 100);
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-470, 125, -25));
+      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(200, 125, -25));
 
       // back and front
       mBlocks = geom->MakeBox("back_front", Iron, 1, 125, 125);
