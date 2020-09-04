@@ -89,64 +89,74 @@ namespace bdm {
   } // end SeatTaken
 
 // ---------------------------------------------------------------------------
-  static void AddPassenger(int number_of_passenger, State state,
+static Double3 GetEmptySeat() {
+  auto* sim = Simulation::GetActive();
+  auto* rm = sim->GetResourceManager();
+  auto* random = sim->GetRandom();
+
+  // check empty seats
+  std::vector<Double3> agents_position_list;
+  std::vector<Double3> seats_list = GetSeatsList();
+  std::vector<Double3> empty_seats_list;
+
+  auto get_empty_seats = [&agents_position_list](const auto* neighbor) {
+    auto* hu = bdm_static_cast<const Human*>(neighbor);
+    agents_position_list.push_back(hu->GetPosition());
+  };
+
+  rm->ApplyOnAllElements(get_empty_seats);
+
+  for (size_t i = 0; i < seats_list.size(); i++) {
+    bool taken = false;
+    for (size_t j = 0; j < agents_position_list.size(); j++) {
+      if (SeatTaken(seats_list[i], agents_position_list[j])) {
+        taken = true;
+        break;
+      }
+    }
+    if (!taken) {
+      empty_seats_list.push_back(seats_list[i]);
+    }
+  }
+
+  //TODO: if empty_seats_list is empty,
+  //      either stay here, or go to empty stading place
+
+  // get a random empty seat as destination
+  Double3 dest = empty_seats_list[(int)random->Uniform(0, empty_seats_list.size())];
+
+  return dest;
+} // end GetEmptySeat()
+
+// ---------------------------------------------------------------------------
+  static void AddPassenger(State state,
                            std::vector<std::vector<bool>>* navigation_map) {
     auto* sim = Simulation::GetActive();
     auto* rm = sim->GetResourceManager();
     auto* param = sim->GetParam();
     auto* sparam = param->GetModuleParam<SimParam>();
-    auto* random = sim->GetRandom();
 
-    // agent created at bus entrance + waiting queu in y direction
-    // TODO: queu in x direction, alongside the bus?
-    Human* human;
-    for (int i = 0; i < number_of_passenger; i ++) {
-      human = new Human({-500, (double)130 + 55 * i, 0});
-      human->SetDiameter(sparam->human_diameter);
-      human->state_ = state;
-      // add biology modules
-      human->AddBiologyModule(new Navigation(navigation_map));
-      if (state == State::kHealthy) {
-        human->AddBiologyModule(new GetInfectedBehaviour());
-      }
-      else {
-        human->AddBiologyModule(new SpreadVirusBehaviour());
-      }
-      // check empty seats
-      std::vector<Double3> agents_position_list;
-      std::vector<Double3> seats_list = GetSeatsList();
-      std::vector<Double3> empty_seats_list;
+    // agent created at bus entrance
+    Human* human = new Human({-480, 110, -40});
+    human->SetDiameter(sparam->human_diameter);
+    human->state_ = state;
+    // add biology modules
+    human->AddBiologyModule(new Navigation(navigation_map));
+    if (state == State::kHealthy) {
+      human->AddBiologyModule(new GetInfectedBehaviour());
+    }
+    else {
+      human->AddBiologyModule(new SpreadVirusBehaviour());
+    }
 
-      auto get_empty_seats = [&agents_position_list](const auto* neighbor) {
-        auto* hu = bdm_static_cast<const Human*>(neighbor);
-        agents_position_list.push_back(hu->GetPosition());
-      };
+    // search for an empty seat
+    Double3 dest = GetEmptySeat();
+    std::vector<std::pair<double, double>> destinations_list;
+    destinations_list.push_back(std::make_pair(
+      GetBDMToMapLoc(dest[0]), GetBDMToMapLoc(dest[1])));
+    human->destinations_list_= destinations_list;
 
-      rm->ApplyOnAllElements(get_empty_seats);
-
-      for (size_t i = 0; i < seats_list.size(); i++) {
-        bool taken = false;
-        for (size_t j = 0; j < agents_position_list.size(); j++) {
-          if (SeatTaken(seats_list[i], agents_position_list[j])) {
-            taken = true;
-            break;
-          }
-        }
-        if (!taken) {
-          empty_seats_list.push_back(seats_list[i]);
-        }
-      }
-
-      // add a random empty seat as destination
-      auto dest = empty_seats_list[(int)random->Uniform(0, empty_seats_list.size())];
-      std::vector<std::pair<double, double>> destinations_list;
-      destinations_list.push_back(std::make_pair(
-        GetBDMToMapLoc(dest[0]), GetBDMToMapLoc(dest[1])));
-
-      human->destinations_list_= destinations_list;
-
-      rm->push_back(human);
-    } // end for number_of_passenger
+    rm->push_back(human);
   } // end AddPassenger
 
 // ---------------------------------------------------------------------------
@@ -158,7 +168,7 @@ namespace bdm {
 
     Human* human;
     // driver: kHealthy, GetInfectedBehaviour
-    human = new Human({-475, -65, 0});
+    human = new Human({-475, -65, -40});
     human->SetDiameter(sparam->human_diameter);
     human->state_ = State::kHealthy;
     human->AddBiologyModule(new GetInfectedBehaviour());
@@ -166,8 +176,9 @@ namespace bdm {
     // passenger already in the bus
     // kHealthy, Navigation, GetInfectedBehaviour
     std::vector<Double3> passenger_position_list = {
-      {-50, -50, 0}, {-30, -50, 0}, {420, -95, 0}, {-30, -95, 0}, {45, 95, 0},
-      {120, 95, 0}, {-180, 50, 0}, {-30, 50, 0}, {-30, 95, 0}, {495, -95, 0}
+      {-105, -50, -40}, {-30, -50, -40}, {420, -95, -40}, {-30, -95, -40},
+      {45, 95, -40}, {120, 95, -40}, {-180, 50, -40}, {-30, 50, -40},
+      {-30, 95, -40}, {495, -95, -40}
     };
 
     for (size_t i = 0; i < passenger_position_list.size(); i++) {
@@ -180,7 +191,7 @@ namespace bdm {
     }
     // passenger already in bus
     // State::kInfected, SpreadVirusBehaviour
-    human = new Human({45, -95, 0});
+    human = new Human({45, -95, -40});
     human->SetDiameter(sparam->human_diameter);
     human->state_ = State::kInfected;
     human->AddBiologyModule(new Navigation(navigation_map));
