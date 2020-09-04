@@ -47,7 +47,13 @@ namespace bdm {
     rm->ApplyOnAllElements(get_agents_position_list);
 
     return agents_position_list;
-  }
+  } // end GetAgentsPositionList
+
+// ---------------------------------------------------------------------------
+  static bool IsExit(Double3 position) {
+    return (position[0] > 190 && position[0] < 210 &&
+            position[1] > 100 && position[1] < 120);
+  } // end IsExit
 
 // ---------------------------------------------------------------------------
   static bool SamePosition(Double3 seat, Double3 agent) {
