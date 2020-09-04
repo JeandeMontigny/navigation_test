@@ -17,6 +17,7 @@
 #include "core/scheduler.h"
 #include "core/diffusion_grid.h"
 #include "core/resource_manager.h"
+#include "population_creation_utils.h"
 
 namespace bdm {
 
@@ -36,12 +37,13 @@ struct Navigation : public BaseBiologyModule {
 
   void Run(SimObject* so) override {
     auto* sim = Simulation::GetActive();
+    auto* random = sim->GetRandom();
+
     // execute this BM only evey x steps to allow diffusion
     if (sim->GetScheduler()->GetSimulatedSteps() % 5 != 0) {
       return;
     }
 
-    auto* random = sim->GetRandom();
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
 
@@ -80,6 +82,19 @@ struct Navigation : public BaseBiologyModule {
 
     // if agent has its path, has to move to it
     else if (path_calculated_) {
+      Double3 dest = {GetMapToBDMLoc(human->path_[0][0]),
+                      GetMapToBDMLoc(human->path_[0][1]), -40};
+      // if human is close to destination, check if seat is still empty
+      if (human->path_.size() < 25 &&
+        SeatTaken(dest, position)) {
+        dest = GetEmptySeat();
+        std::vector<std::pair<double, double>> destinations_list;
+        destinations_list.push_back(std::make_pair(
+          GetBDMToMapLoc(dest[0]), GetBDMToMapLoc(dest[1])));
+        human->destinations_list_= destinations_list;
+        path_calculated_ = false;
+        return;
+      }
 
       if (!human->path_.empty()) {
         Double3 next_position = {
