@@ -48,8 +48,7 @@ struct Navigation : public BaseBiologyModule {
     const auto& position = human->GetPosition();
 
     // if human is at the bus exit
-    if (position[0] > 190 && position[0] < 210 &&
-        position[1] > 100 && position[1] < 120) {
+    if (IsExit(position)) {
       human->RemoveFromSimulation();
     }
 
@@ -85,7 +84,7 @@ struct Navigation : public BaseBiologyModule {
       Double3 dest = {GetMapToBDMLoc(human->path_[0][0]),
                       GetMapToBDMLoc(human->path_[0][1]), -40};
       // if human is close to destination, check if seat is still empty
-      if (human->path_.size() < 25 &&
+      if (human->path_.size() < 25 && !IsExit(dest) &&
         SeatTaken(dest, position)) {
         dest = GetEmptySeat();
         std::vector<std::pair<double, double>> destinations_list;
