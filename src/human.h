@@ -34,6 +34,8 @@ class Human : public Cell {
   std::vector<std::pair<double, double>> destinations_list_;
   // store the path to a destination
   std::vector<std::vector<double>> path_;
+  /// store the agent's orientation. by default, follow bus orientation
+  std::vector<double> orientation_ = {-1,0};
 };
 
 }  // namespace bdm
