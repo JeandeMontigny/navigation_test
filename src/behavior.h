@@ -46,6 +46,7 @@ struct Navigation : public BaseBiologyModule {
 
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
+    std::vector<double> previous_position = {position[0], position[1]};
 
     // if human is at the bus exit
     if (IsExit(position)) {
@@ -103,11 +104,18 @@ struct Navigation : public BaseBiologyModule {
         // navigate according to path
         human->SetPosition(next_position);
 
+        double vec_x = human->GetPosition()[0] - previous_position[0];
+        double vec_y = human->GetPosition()[1] - previous_position[1];
+        double vec_norm = std::sqrt((vec_x*vec_x)+(vec_y*vec_y));
+        human->orientation_ = {vec_x/vec_norm, vec_y/vec_norm};
+
         // if either on or after this path position
         human->path_.erase(human->path_.end());
       }
       // path is empty, so destination is reached
       else {
+        // agent orientation follow bus orientation
+        human->orientation_ = {-1, 0};
         // can add an other destination here
         path_calculated_ = false;
       }
@@ -144,8 +152,12 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
     DiffusionGrid* dg = nullptr;
     dg = rm->GetDiffusionGrid("virus");
 
+    Double3 diffusion_position =
+      {human->GetPosition()[0] + human->orientation_[0]* human->GetDiameter()/2,
+       human->GetPosition()[1] + human->orientation_[1]* human->GetDiameter()/2,
+       -40 };
     //TODO: conic spreading of virus
-    dg->IncreaseConcentrationBy(human->GetPosition(), 1);
+    dg->IncreaseConcentrationBy(diffusion_position, 1);
 
     //TODO: breathing spread:
     //        -> low distance and concentration, but pusling regularly
