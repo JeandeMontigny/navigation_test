@@ -28,8 +28,8 @@ class Human : public Cell {
 
   // This data member stores the current state of the agent.
   int state_ = State::kHealthy;
-  int incubation_counter_ = 1000;
-  int recovery_counter_ = 2000;
+  int incubation_counter_ = 1e9;
+  int recovery_counter_ = 1e9;
   // store the destinations
   std::vector<std::pair<double, double>> destinations_list_;
   // store the path to a destination
