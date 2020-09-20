@@ -1,13 +1,16 @@
-number_of_steps = 4000
+# 3600 = 30min
+number_of_steps = 2
 human_diameter = 25
 map_pixel_size = 4
 
 # ----------------------------------------------------------------------------
 [simulation]
-time_step = 1
+# 1=1h; 0.000277 ~= 1s
+# 0.00014 ~= 0.5s
+time_step = 0.00014
 bound_space = true
-min_bound = -550
-max_bound = 550
+min_bound = -250
+max_bound = 250
 run_mechanical_interactions = false
 show_simulation_step = false
 leaking_edges = false
@@ -15,13 +18,13 @@ calculate_gradients = false
 
 # ----------------------------------------------------------------------------
 [visualization]
-export = true
+export = false
 live = false
-export_interval = 10
+export_interval = 1
 
     [[visualize_sim_object]]
     name = "Human"
     additional_data_members = [ "state_" ]
 
     [[visualize_diffusion]]
-    name = "virus"
+    name = "aerosol"
