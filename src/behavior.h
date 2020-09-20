@@ -22,7 +22,7 @@
 namespace bdm {
 
   // enumerate substances in simulation
-  enum Substances { dg_0_ };
+  enum Substances { dg_0_ , dg_1_};
 
 // ---------------------------------------------------------------------------
 struct Navigation : public BaseBiologyModule {
@@ -137,34 +137,114 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
   void Run(SimObject* so) override {
     auto* sim = Simulation::GetActive();
     auto* rm = sim->GetResourceManager();
+    auto* random = sim->GetRandom();
+    auto* param = sim->GetParam();
+    auto* sparam = param->GetModuleParam<SimParam>();
 
     auto* human = bdm_static_cast<Human*>(so);
+    Double3 position = human->GetPosition();
+    double radius = human->GetDiameter()/2;
+
+    human->orientation_ = {0, 1};
 
     // recovery time if infected
     if (human->state_ == State::kInfected) {
-      if (human->recovery_counter_ <= 0) {
-        human->state_ = State::kRecovered;
-      } else {
-        human->recovery_counter_--;
-      }
+    //   if (human->recovery_counter_ <= 0) {
+    //     human->state_ = State::kRecovered;
+    //   } else {
+    //     human->recovery_counter_--;
+    //   }
 
     // virus spreading
-    DiffusionGrid* dg = nullptr;
-    dg = rm->GetDiffusionGrid("virus");
+    DiffusionGrid* dg_a = nullptr;
+    dg_a = rm->GetDiffusionGrid("aerosol");
+    DiffusionGrid* dg_d = nullptr;
+    dg_d = rm->GetDiffusionGrid("droplets");
 
-    Double3 diffusion_position =
-      {human->GetPosition()[0] + human->orientation_[0]* human->GetDiameter()/2,
-       human->GetPosition()[1] + human->orientation_[1]* human->GetDiameter()/2,
-       -40 };
-    //TODO: conic spreading of virus
-    dg->IncreaseConcentrationBy(diffusion_position, 1);
+    int grid_spacing = sparam->map_pixel_size;
+    std::vector<Double3> diffusion_positions;
 
-    //TODO: breathing spread:
-    //        -> low distance and concentration, but pusling regularly
+    double d_len = 100;
+    double d_wid = 100;
 
-    //TODO: sneez or coughing:
-    //        -> long distance and high concentration. rarely occurs
+    // breathing spread
+    // no significant production of droplets
+    // low produciton of aerosol and short propagation
+    if (random->Uniform() < 1) { // 0.95
+      // coordinates of triangle where substance is produced
+      // mouth
+      Double3 tri_a =
+        { position[0] + human->orientation_[0] * radius,
+          position[1] + human->orientation_[1] * radius, position[2]};
+      // further point in agent's orientation, at d_len dist
+      Double3 tri_d =
+        { tri_a[0] + human->orientation_[0] * d_len,
+          tri_a[1] + human->orientation_[1] * d_len, position[2]};
+      // triangle base coordinates
+      // B = 90° of v fom D * d_wid/2
+      Double3 tri_b =
+        { tri_a[0] + human->orientation_[0] * d_wid/2
+            + tri_a[0] + human->orientation_[1] * d_wid/2,
+          tri_a[1] + human->orientation_[0] * d_wid/2
+            + tri_a[1] + human->orientation_[1] * d_wid/2,
+          position[2]};
+      Double3 tri_c =
+        { tri_a[0] - human->orientation_[0] * d_wid/2
+            - tri_a[0] + human->orientation_[1] * d_wid/2,
+          tri_a[1] - human->orientation_[0] * d_wid/2
+            - tri_a[1] + human->orientation_[1] * d_wid/2,
+          position[2]};
+      std::cout << "tri_a: " << tri_a[0] << ", " << tri_a[1]
+                << "; tri_d: " << tri_d[0] << ", " << tri_d[1]
+                << "; tri_b: " << tri_b[0] << ", " << tri_b[1]
+                << "; tri_c: " << tri_c[0] << ", " << tri_c[1]
+                << std::endl;
+      // for each diffusion point in from of agent (up to 1m)
+      for (int i = 0; i < 100/grid_spacing; i++) {
+        // for diffusion points within cone width (1m)
+        for (int j = 0; j < 100/grid_spacing; j++) {
+          // potential diffusion point
+          double diff_x = tri_a[0]
+            + human->orientation_[0] * i * grid_spacing;
+          double diff_y = tri_a[1]
+            + human->orientation_[1] * j * grid_spacing;
+          double diff_z = position[2];
+          Double3 point_pos = {diff_x, diff_y, diff_z};
+          //if i,j is within cone
+          if (IsInsideTriangle(tri_a, tri_b, tri_c, point_pos)) {
+            diffusion_positions.push_back(point_pos);
+          }
+        } // end for jj
+      } // end for i
+    } // end if normal breathing
 
+    // cough or sneez spread
+    // long distance and high concentration. rarely occurs
+    else {
+      // cough
+      if (random->Uniform() < 0.5) {
+        return;
+      }
+      // cough
+      else {
+        return;
+      }
+    }
+
+    std::cout << diffusion_positions.size()
+              << " points to diffuse to"
+              // << "; first one: "
+              // << diffusion_positions[0][0] << " " << diffusion_positions[0][1]
+              << "; last one: "
+              << diffusion_positions[diffusion_positions.size()-1][0] << " " << diffusion_positions[diffusion_positions.size()-1][1]
+              << std::endl;
+
+    for (int point = 0; point < diffusion_positions.size(); point++) {
+      // TODO: decrease diffusion when far from emission point
+      dg_a->IncreaseConcentrationBy(diffusion_positions[point], 8);
+    }
+
+    // dg_d->IncreaseConcentrationBy(diffusion_position, 8);
     } // end if kInfected
 
   } // end Run
@@ -189,20 +269,24 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
     }
 
     // incubation time if incubation
-    if (human->state_ == State::kIncubation) {
-      if (human->recovery_counter_ <= 0) {
-        human->state_ = State::kInfected;
-        human->AddBiologyModule(new SpreadVirusBehaviour());
-      } else {
-        human->incubation_counter_--;
-      }
-    } // end if kIncubation
+    // if (human->state_ == State::kIncubation) {
+    //   if (human->recovery_counter_ <= 0) {
+    //     human->state_ = State::kInfected;
+    //     human->AddBiologyModule(new SpreadVirusBehaviour());
+    //   } else {
+    //     human->incubation_counter_--;
+    //   }
+    // } // end if kIncubation
 
     // infection
     if (human->state_ == State::kHealthy) {
-      DiffusionGrid* dg = nullptr;
-      dg = rm->GetDiffusionGrid("virus");
-      double concentration = dg->GetConcentration(human->GetPosition());
+      DiffusionGrid* dg_a = nullptr;
+      DiffusionGrid* dg_d = nullptr;
+      dg_a = rm->GetDiffusionGrid("aerosol");
+      dg_d = rm->GetDiffusionGrid("droplets");
+      double aerosol = dg_a->GetConcentration(human->GetPosition());
+      double droplets = dg_d->GetConcentration(human->GetPosition());
+      double concentration = aerosol + droplets;
 
       if (concentration > 1e-6) {
         human->state_ = State::kIncubation;
