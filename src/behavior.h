@@ -145,8 +145,6 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
     Double3 position = human->GetPosition();
     double radius = human->GetDiameter()/2;
 
-    human->orientation_ = {0, 1};
-
     // recovery time if infected
     if (human->state_ == State::kInfected) {
     //   if (human->recovery_counter_ <= 0) {
@@ -200,20 +198,14 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
       { tri_d[0] + w_c[0] * d_wid/2,
         tri_d[1] + w_c[1] * d_wid/2,
         position[2]};
-      std::cout << "tri_a: " << tri_a[0] << ", " << tri_a[1]
-                << "; tri_d: " << tri_d[0] << ", " << tri_d[1]
-                << "; tri_b: " << tri_b[0] << ", " << tri_b[1]
-                << "; tri_c: " << tri_c[0] << ", " << tri_c[1]
-                << std::endl;
-      // for each diffusion point in from of agent (up to 1m)
+
+      // from A to D with grid_spacing step
       for (int i = 0; i < 100/grid_spacing; i++) {
-        // for diffusion points within cone width (1m)
+        // from B to C with grid_spacing step
         for (int j = 0; j < 100/grid_spacing; j++) {
           // potential diffusion point
-          double diff_x = tri_a[0]
-            + v[0] * i * grid_spacing;
-          double diff_y = tri_a[1]
-            + v[1] * j * grid_spacing;
+          double diff_x = tri_b[0] - (v[0] * i * grid_spacing) - (w_b[0] * j * grid_spacing);
+          double diff_y = tri_b[1] - (v[1] * i * grid_spacing) - (w_b[1] * j * grid_spacing);
           double diff_z = position[2];
           Double3 point_pos = {diff_x, diff_y, diff_z};
           //if i,j is within cone

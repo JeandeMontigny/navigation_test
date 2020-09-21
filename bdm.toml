@@ -18,7 +18,7 @@ calculate_gradients = false
 
 # ----------------------------------------------------------------------------
 [visualization]
-export = false
+export = true
 live = false
 export_interval = 1
 
