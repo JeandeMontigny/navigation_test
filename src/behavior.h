@@ -161,48 +161,115 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
 
     int grid_spacing = sparam->map_pixel_size;
     std::vector<Double3> diffusion_positions;
+    std::vector<Double3> diffusion_positions_drop;
 
-    double d_len = 100;
-    double d_wid = 100;
     double v[2] = {human->orientation_[0], human->orientation_[1]};
-
     // breathing spread
     // no significant production of droplets
     // low produciton of aerosol and short propagation
-    if (random->Uniform() < 1) { // 0.95
-      // coordinates of triangle where substance is produced
-      // mouth
-      Double3 tri_a =
-        { position[0] + v[0] * radius,
-          position[1] + v[1] * radius, position[2]};
-      // further point in agent's orientation, at d_len dist
-      Double3 tri_d =
-        { tri_a[0] + v[0] * d_len,
-          tri_a[1] + v[1] * d_len, position[2]};
+    double d_len = 100;
+    double d_wid = 100;
+    int aerosol_production = 8;
+    bool droplets_secretion = false;
+    double d_len_drop = 0;
+    double d_wid_drop = 0;
+    int proplets_production = 32;
+
+    // cough or sneez spread
+    // long distance and high concentration. rarely occurs
+    if (random->Uniform() < 0.95) { // 0.05
+      droplets_secretion = true;
+      // cough
+      d_len = 400;
+      d_wid = 150;
+      d_len_drop = 50;
+      d_wid_drop = 50;
+      if (random->Uniform() < 0.5) {
+        // sneezing
+        d_len = 600;
+        d_wid = 250;
+        d_len_drop = 150;
+        d_wid_drop = 100;
+      }
+    }
+
+    // coordinates of triangle where substance is produced
+    // mouth
+    Double3 tri_a =
+      { position[0] + v[0] * radius,
+        position[1] + v[1] * radius, position[2]};
+    // further point in agent's orientation, at d_len dist
+    Double3 tri_d =
+      { tri_a[0] + v[0] * d_len,
+        tri_a[1] + v[1] * d_len, position[2]};
+    // triangle base coordinates
+    // B = 90° of v fom D * d_wid/2
+    double theta = DegToRad(90);
+    double cs = std::cos(theta);
+    double sn = std::sin(theta);
+    double w_b[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
+    Double3 tri_b =
+      { tri_d[0] + w_b[0] * d_wid/2,
+        tri_d[1] + w_b[1] * d_wid/2,
+        position[2]};
+    // C = -90° of v fom D * d_wid/2
+    theta = DegToRad(-90);
+    cs = std::cos(theta);
+    sn = std::sin(theta);
+    double w_c[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
+    Double3 tri_c =
+    { tri_d[0] + w_c[0] * d_wid/2,
+      tri_d[1] + w_c[1] * d_wid/2,
+      position[2]};
+    // from A to D with grid_spacing step
+    for (int i = 0; i < d_len/grid_spacing; i++) {
+      // from B to C with grid_spacing step
+      for (int j = 0; j < d_wid/grid_spacing; j++) {
+        // potential diffusion point
+        double diff_x = tri_b[0] - (v[0] * i * grid_spacing) - (w_b[0] * j * grid_spacing);
+        double diff_y = tri_b[1] - (v[1] * i * grid_spacing) - (w_b[1] * j * grid_spacing);
+        double diff_z = position[2];
+        Double3 point_pos = {diff_x, diff_y, diff_z};
+        //if i,j is within cone
+        if (IsInsideTriangle(tri_a, tri_b, tri_c, point_pos)) {
+          diffusion_positions.push_back(point_pos);
+        }
+      } // end for jj
+    } // end for i
+
+    // diffuse for each points inside triangle
+    for (int point = 0; point < diffusion_positions.size(); point++) {
+      // TODO: decrease diffusion when far from emission point
+      dg_a->IncreaseConcentrationBy(
+        diffusion_positions[point], aerosol_production);
+    }
+
+    // droplets
+    if (droplets_secretion) {
+      tri_d =
+        { tri_a[0] + v[0] * d_len_drop,
+          tri_a[1] + v[1] * d_len_drop, position[2]};
       // triangle base coordinates
       // B = 90° of v fom D * d_wid/2
-      double theta = DegToRad(90);
-      double cs = std::cos(theta);
-      double sn = std::sin(theta);
-      double w_b[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
-      Double3 tri_b =
-        { tri_d[0] + w_b[0] * d_wid/2,
-          tri_d[1] + w_b[1] * d_wid/2,
-          position[2]};
+      theta = DegToRad(90);
+      cs = std::cos(theta);
+      sn = std::sin(theta);
+      double w_b_drop[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
+      tri_b = { tri_d[0] + w_b_drop[0] * d_wid_drop/2,
+                tri_d[1] + w_b_drop[1] * d_wid_drop/2,
+                position[2]};
       // C = -90° of v fom D * d_wid/2
       theta = DegToRad(-90);
       cs = std::cos(theta);
       sn = std::sin(theta);
-      double w_c[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
-      Double3 tri_c =
-      { tri_d[0] + w_c[0] * d_wid/2,
-        tri_d[1] + w_c[1] * d_wid/2,
-        position[2]};
-
+      double w_c_drop[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
+      tri_c = { tri_d[0] + w_c_drop[0] * d_wid_drop/2,
+                tri_d[1] + w_c_drop[1] * d_wid_drop/2,
+                position[2]};
       // from A to D with grid_spacing step
-      for (int i = 0; i < 100/grid_spacing; i++) {
+      for (int i = 0; i < d_len_drop/grid_spacing; i++) {
         // from B to C with grid_spacing step
-        for (int j = 0; j < 100/grid_spacing; j++) {
+        for (int j = 0; j < d_wid_drop/grid_spacing; j++) {
           // potential diffusion point
           double diff_x = tri_b[0] - (v[0] * i * grid_spacing) - (w_b[0] * j * grid_spacing);
           double diff_y = tri_b[1] - (v[1] * i * grid_spacing) - (w_b[1] * j * grid_spacing);
@@ -210,40 +277,19 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
           Double3 point_pos = {diff_x, diff_y, diff_z};
           //if i,j is within cone
           if (IsInsideTriangle(tri_a, tri_b, tri_c, point_pos)) {
-            diffusion_positions.push_back(point_pos);
+            diffusion_positions_drop.push_back(point_pos);
           }
         } // end for jj
       } // end for i
-    } // end if normal breathing
 
-    // cough or sneez spread
-    // long distance and high concentration. rarely occurs
-    else {
-      // cough
-      if (random->Uniform() < 0.5) {
-        return;
-      }
-      // cough
-      else {
-        return;
+      for (int point = 0; point < diffusion_positions_drop.size(); point++) {
+        // TODO: decrease diffusion when far from emission point
+          dg_d->IncreaseConcentrationBy(
+            diffusion_positions_drop[point], proplets_production);
       }
     }
 
-    std::cout << diffusion_positions.size()
-              << " points to diffuse to"
-              // << "; first one: "
-              // << diffusion_positions[0][0] << " " << diffusion_positions[0][1]
-              << "; last one: "
-              << diffusion_positions[diffusion_positions.size()-1][0] << " " << diffusion_positions[diffusion_positions.size()-1][1]
-              << std::endl;
-
-    for (int point = 0; point < diffusion_positions.size(); point++) {
-      // TODO: decrease diffusion when far from emission point
-      dg_a->IncreaseConcentrationBy(diffusion_positions[point], 8);
-    }
-
-    // dg_d->IncreaseConcentrationBy(diffusion_position, 8);
-    } // end if kInfected
+  } // end if kInfected
 
   } // end Run
 }; // end SpreadVirusBehaviour
