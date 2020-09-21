@@ -11,7 +11,7 @@
 #include "human.h"
 #include "behavior.h"
 #include "sim-param.h"
-#include "geom.h"
+#include "geom_construct.h"
 
 namespace bdm {
 

@@ -5,9 +5,10 @@
 //
 // -----------------------------------------------------------------------------
 
-#ifndef GEOM_H_
-#define GEOM_H_
+#ifndef GEOM_CONSTRUCT_H_
+#define GEOM_CONSTRUCT_H_
 
+#include "core/geom.h"
 #include "TGeometry.h"
 #include "TGeoManager.h"
 #include "util_methods.h"
@@ -207,4 +208,4 @@ namespace bdm {
 
 }  // namespace bdm
 
-#endif // GEOM_H_
+#endif // GEOM_CONSTRUCT_H_

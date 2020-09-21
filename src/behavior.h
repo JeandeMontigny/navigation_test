@@ -10,7 +10,7 @@
 
 #include "core/biology_module/biology_module.h"
 #include "human.h"
-#include "geom.h"
+#include "geom_construct.h"
 #include "sim-param.h"
 #include "a_star.h"
 #include "navigation_util.h"

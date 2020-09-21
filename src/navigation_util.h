@@ -8,6 +8,7 @@
 #ifndef NAVIGATION_UTIL_
 #define NAVIGATION_UTIL_
 
+#include "biodynamo.h"
 #include "core/geom.h"
 #include "core/simulation.h"
 #include "core/param/param.h"

@@ -19,7 +19,7 @@
 #include "human.h"
 #include "behavior.h"
 #include "sim-param.h"
-#include "geom.h"
+#include "geom_construct.h"
 #include "util_methods.h"
 #include "navigation_util.h"
 #include "a_star.h"
