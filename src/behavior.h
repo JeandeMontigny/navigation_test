@@ -166,6 +166,7 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
 
     double d_len = 100;
     double d_wid = 100;
+    double v[2] = {human->orientation_[0], human->orientation_[1]};
 
     // breathing spread
     // no significant production of droplets
@@ -174,26 +175,31 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
       // coordinates of triangle where substance is produced
       // mouth
       Double3 tri_a =
-        { position[0] + human->orientation_[0] * radius,
-          position[1] + human->orientation_[1] * radius, position[2]};
+        { position[0] + v[0] * radius,
+          position[1] + v[1] * radius, position[2]};
       // further point in agent's orientation, at d_len dist
       Double3 tri_d =
-        { tri_a[0] + human->orientation_[0] * d_len,
-          tri_a[1] + human->orientation_[1] * d_len, position[2]};
+        { tri_a[0] + v[0] * d_len,
+          tri_a[1] + v[1] * d_len, position[2]};
       // triangle base coordinates
       // B = 90° of v fom D * d_wid/2
+      double theta = DegToRad(90);
+      double cs = std::cos(theta);
+      double sn = std::sin(theta);
+      double w_b[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
       Double3 tri_b =
-        { tri_a[0] + human->orientation_[0] * d_wid/2
-            + tri_a[0] + human->orientation_[1] * d_wid/2,
-          tri_a[1] + human->orientation_[0] * d_wid/2
-            + tri_a[1] + human->orientation_[1] * d_wid/2,
+        { tri_d[0] + w_b[0] * d_wid/2,
+          tri_d[1] + w_b[1] * d_wid/2,
           position[2]};
+      // C = -90° of v fom D * d_wid/2
+      theta = DegToRad(-90);
+      cs = std::cos(theta);
+      sn = std::sin(theta);
+      double w_c[2] = {v[0] * cs - v[1] * sn, v[0] * sn + v[1] * cs};
       Double3 tri_c =
-        { tri_a[0] - human->orientation_[0] * d_wid/2
-            - tri_a[0] + human->orientation_[1] * d_wid/2,
-          tri_a[1] - human->orientation_[0] * d_wid/2
-            - tri_a[1] + human->orientation_[1] * d_wid/2,
-          position[2]};
+      { tri_d[0] + w_c[0] * d_wid/2,
+        tri_d[1] + w_c[1] * d_wid/2,
+        position[2]};
       std::cout << "tri_a: " << tri_a[0] << ", " << tri_a[1]
                 << "; tri_d: " << tri_d[0] << ", " << tri_d[1]
                 << "; tri_b: " << tri_b[0] << ", " << tri_b[1]
@@ -205,9 +211,9 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
         for (int j = 0; j < 100/grid_spacing; j++) {
           // potential diffusion point
           double diff_x = tri_a[0]
-            + human->orientation_[0] * i * grid_spacing;
+            + v[0] * i * grid_spacing;
           double diff_y = tri_a[1]
-            + human->orientation_[1] * j * grid_spacing;
+            + v[1] * j * grid_spacing;
           double diff_z = position[2];
           Double3 point_pos = {diff_x, diff_y, diff_z};
           //if i,j is within cone

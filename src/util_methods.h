@@ -27,6 +27,11 @@ namespace bdm {
   } // end IsInsideTriangle
 
 // ------------------------------------------------------------------------
+  inline double DegToRad (double degrees) {
+      return degrees * 4.0 * atan (1.0) / 180.0;
+  }
+
+// ------------------------------------------------------------------------
 //   inline double GetDistance(Double3 dAB) {
 //     return std::sqrt(dAB[0]*dAB[0] + dAB[1]*dAB[1] + dAB[2]*dAB[2]);
 //   } // end GetDistance
