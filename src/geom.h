@@ -6,6 +6,7 @@
 #include "TGeoManager.h"
 #include "TGeoBBox.h"
 #include "core/container/math_array.h"
+#include "sim-param.h"
 
 namespace bdm {
 
@@ -125,24 +126,49 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   inline void ExportGeomToFoam() {
+    auto* sim = Simulation::GetActive();
+    auto* param = sim->GetParam();
+    auto* sparam = param->GetModuleParam<SimParam>();
+
     auto* sim_space = gGeoManager->GetVolume("sim_space");
-    // auto* sim_space_nodes = sim_space->GetNodes();
+
+    //TODO: create file for export
+
     double vert[24] = {0};
     double vert_master[3] = {0};
 
     for (int i = 0; i < sim_space->GetNdaughters(); ++i) {
       auto node = sim_space->GetNode(i);
       TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
+      // copies the box vertices in local coordinates
+      box->SetBoxPoints(&vert[0]);
 
-      box->SetBoxPoints(&vert[0]); // copies the box vertices in local coordinates
-      std::cout << node->GetName() << " vertices: ";
+      double min_vert[3] = {param->max_bound_, param->max_bound_, param->max_bound_};
+      double max_vert[3] = {param->min_bound_, param->min_bound_, param->min_bound_};
+      std::cout << node->GetName() << " diagonal vertices:" << std::endl;
       for (auto point=0; point<8; point++) {
         // Convert each vertex to the reference frame of sim_space
         node->LocalToMaster(&vert[3*point], vert_master);
-        std::cout << "{" << vert_master[0] << ", " << vert_master[1] << ", " << vert_master[2] << "}, ";
-      }
-      std::cout << "\n";
-
+        if (vert_master[0] < min_vert[0] &&
+          vert_master[1] < min_vert[1] &&
+          vert_master[2] < min_vert[2]) {
+          min_vert[0] = vert_master[0];
+          min_vert[1] = vert_master[1];
+          min_vert[2] = vert_master[2];
+        }
+        if (vert_master[0] > max_vert[0] &&
+          vert_master[1] > max_vert[1] &&
+          vert_master[2] > max_vert[2]) {
+          max_vert[0] = vert_master[0];
+          max_vert[1] = vert_master[1];
+          max_vert[2] = vert_master[2];
+        }
+      } // end for all vertices points
+      //TODO: write corresponding object in Foam file
+      std::cout << "  min_vert: {" << min_vert[0] << ", " << min_vert[1]
+                << ", " << min_vert[2] << "}" << std::endl;
+      std::cout << "  max_vert: {" << max_vert[0] << ", " << max_vert[1]
+                << ", " << max_vert[2] << "}" << std::endl;
     } // end for node in sim_space
 
   } // end ExportGeomToFoam
