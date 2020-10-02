@@ -21,9 +21,6 @@
 
 namespace bdm {
 
-  // enumerate substances in simulation
-  enum Substances { dg_0_ , dg_1_};
-
 // ---------------------------------------------------------------------------
 struct Navigation : public BaseBiologyModule {
   BDM_STATELESS_BM_HEADER(Navigation, BaseBiologyModule, 1);
@@ -135,84 +132,31 @@ struct SpreadVirusBehaviour : public BaseBiologyModule {
   SpreadVirusBehaviour() : BaseBiologyModule(gAllEventIds) {}
 
   void Run(SimObject* so) override {
-    auto* sim = Simulation::GetActive();
-    auto* rm = sim->GetResourceManager();
-    auto* random = sim->GetRandom();
-    auto* param = sim->GetParam();
-    auto* sparam = param->GetModuleParam<SimParam>();
+    // auto* sim = Simulation::GetActive();
+    // auto* rm = sim->GetResourceManager();
+    // auto* random = sim->GetRandom();
+    // auto* param = sim->GetParam();
+    // auto* sparam = param->GetModuleParam<SimParam>();
 
     auto* human = bdm_static_cast<Human*>(so);
     Double3 position = human->GetPosition();
     double radius = human->GetDiameter()/2;
+    double v[2] = {human->orientation_[0], human->orientation_[1]};
 
     // recovery time if infected
     if (human->state_ == State::kInfected) {
-    //   if (human->recovery_counter_ <= 0) {
-    //     human->state_ = State::kRecovered;
-    //   } else {
-    //     human->recovery_counter_--;
-    //   }
 
     // virus spreading
-    DiffusionGrid* dg_a = nullptr;
-    dg_a = rm->GetDiffusionGrid("aerosol");
-    DiffusionGrid* dg_d = nullptr;
-    dg_d = rm->GetDiffusionGrid("droplets");
+    Double3 diffusion_position =
+      {position[0] + v[0]* radius, position[1] + v[1]* radius, position[3] };
+    // TODO: call OpenFOAM for droplets and aerosol spreading
 
-    int grid_spacing = sparam->map_pixel_size;
-    std::vector<Double3> diffusion_positions;
-    std::vector<Double3> diffusion_positions_drop;
-
-    double v[2] = {human->orientation_[0], human->orientation_[1]};
     // breathing spread
     // no significant production of droplets
     // low produciton of aerosol and short propagation
-    double d_len = 100;
-    double d_wid = 100;
-    int aerosol_production = 8;
-    bool droplets_secretion = false;
-    double d_len_drop = 0;
-    double d_wid_drop = 0;
-    int proplets_production = 32;
 
     // cough or sneez spread
     // long distance and high concentration. rarely occurs
-    if (random->Uniform() < 0.05) {
-      droplets_secretion = true;
-      // cough
-      d_len = 400;
-      d_wid = 150;
-      d_len_drop = 50;
-      d_wid_drop = 50;
-      aerosol_production = 16;
-      if (random->Uniform() < 0.5) {
-        // sneezing
-        d_len = 600;
-        d_wid = 250;
-        d_len_drop = 150;
-        d_wid_drop = 100;
-      }
-    }
-
-    // aerosol
-    diffusion_positions = GetDiffusionPositions(position, radius, v, grid_spacing, d_len, d_wid);
-    // diffuse for each points inside triangle
-    for (int point = 0; point < diffusion_positions.size(); point++) {
-      // TODO: decrease diffusion when far from emission point
-      dg_a->IncreaseConcentrationBy(
-        diffusion_positions[point], aerosol_production);
-    }  // end aerosol diffusion
-
-    // droplets
-    if (droplets_secretion) {
-      diffusion_positions_drop = GetDiffusionPositions(position, radius, v, grid_spacing, d_len_drop, d_wid_drop);
-      // diffuse for each points inside triangle
-      for (int point = 0; point < diffusion_positions_drop.size(); point++) {
-        // TODO: decrease diffusion when far from emission point
-        dg_d->IncreaseConcentrationBy(
-          diffusion_positions_drop[point], proplets_production);
-      }
-    } // end droplets diffusion
 
   } // end if kInfected
 
@@ -237,25 +181,11 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
       return;
     }
 
-    // incubation time if incubation
-    // if (human->state_ == State::kIncubation) {
-    //   if (human->recovery_counter_ <= 0) {
-    //     human->state_ = State::kInfected;
-    //     human->AddBiologyModule(new SpreadVirusBehaviour());
-    //   } else {
-    //     human->incubation_counter_--;
-    //   }
-    // } // end if kIncubation
-
     // infection
     if (human->state_ == State::kHealthy) {
-      DiffusionGrid* dg_a = nullptr;
-      DiffusionGrid* dg_d = nullptr;
-      dg_a = rm->GetDiffusionGrid("aerosol");
-      dg_d = rm->GetDiffusionGrid("droplets");
-      double aerosol = dg_a->GetConcentration(human->GetPosition());
-      double droplets = dg_d->GetConcentration(human->GetPosition());
-      double concentration = aerosol + droplets;
+      double concentration = 0;
+
+      //TODO: get droplet and aerosol concentrations from OpenFOAM
 
       if (concentration > 1e-6) {
         human->state_ = State::kIncubation;
