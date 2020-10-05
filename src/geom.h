@@ -132,7 +132,10 @@ namespace bdm {
 
     auto* sim_space = gGeoManager->GetVolume("sim_space");
 
-    //TODO: create file for export
+    // create file for export
+    std::ofstream geometry_file;
+    geometry_file.open(Concat(param->output_dir_, "/geometry.txt"));
+    geometry_file << "geometry\n{\n";
 
     double vert[24] = {0};
     double vert_master[3] = {0};
@@ -145,7 +148,6 @@ namespace bdm {
 
       double min_vert[3] = {param->max_bound_, param->max_bound_, param->max_bound_};
       double max_vert[3] = {param->min_bound_, param->min_bound_, param->min_bound_};
-      std::cout << node->GetName() << " diagonal vertices:" << std::endl;
       for (auto point=0; point<8; point++) {
         // Convert each vertex to the reference frame of sim_space
         node->LocalToMaster(&vert[3*point], vert_master);
@@ -164,13 +166,21 @@ namespace bdm {
           max_vert[2] = vert_master[2];
         }
       } // end for all vertices points
-      //TODO: write corresponding object in Foam file
-      std::cout << "  min_vert: {" << min_vert[0] << ", " << min_vert[1]
-                << ", " << min_vert[2] << "}" << std::endl;
-      std::cout << "  max_vert: {" << max_vert[0] << ", " << max_vert[1]
-                << ", " << max_vert[2] << "}" << std::endl;
+      // write corresponding object in Foam file
+      geometry_file << "\tbox\n\t{\n";
+
+      geometry_file << "\t\ttype\tsearchableBox;\n";
+      geometry_file << "\t\tmin\t(" << min_vert[0] << " "
+                    << min_vert[1] << " " << min_vert[2] << ");\n";
+      geometry_file << "\t\tmax\t(" << max_vert[0] << " "
+                    << max_vert[1] << " " << max_vert[2] << ");\n";
+
+      geometry_file << "\t}\n";
     } // end for node in sim_space
 
+    geometry_file << "};";
+    geometry_file.close();
+    std::cout << "geometry exported to Foam format" << std::endl;
   } // end ExportGeomToFoam
 
 }  // namespace bdm
