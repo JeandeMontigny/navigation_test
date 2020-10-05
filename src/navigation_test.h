@@ -39,6 +39,9 @@ inline int Simulate(int argc, const char** argv) {
 
   //construct geom
   BuildBus();
+  // export ROOT geometry to OpenFOAM format
+  ExportGeomToFoam();
+
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map;
 

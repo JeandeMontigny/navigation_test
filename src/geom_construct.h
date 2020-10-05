@@ -101,8 +101,6 @@ namespace bdm {
     // close geometry
     geom->CloseGeometry();
 
-    ExportGeomToFoam();
-
     std::cout << "geom construction done" << std::endl;
 
     // set max threads
