@@ -1,5 +1,5 @@
 # 3600 = 30min
-number_of_steps = 2
+number_of_steps = 3600
 human_diameter = 25
 map_pixel_size = 4
 
@@ -25,6 +25,3 @@ export_interval = 1
     [[visualize_sim_object]]
     name = "Human"
     additional_data_members = [ "state_" ]
-
-    [[visualize_diffusion]]
-    name = "aerosol"

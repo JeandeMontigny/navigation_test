@@ -27,7 +27,7 @@ namespace bdm {
       TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
 
       // simulation volume - 12m * 3m * 3.5m
-      TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 550, 660, 550);
+      TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 650, 650, 650);
       gGeoManager->SetTopVolume(sim_space);
       gGeoManager->SetTopVisible(0);
 

@@ -43,7 +43,7 @@ inline int Simulate(int argc, const char** argv) {
   ExportGeomToFoam();
 
   // construct the 2d array for navigation
-  std::vector<std::vector<bool>> navigation_map;
+  std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
 
   // print navigation_map
   // for (int map_x = 0; map_x < navigation_map.size(); map_x++) {
