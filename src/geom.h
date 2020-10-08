@@ -132,22 +132,47 @@ namespace bdm {
 
     auto* sim_space = gGeoManager->GetVolume("sim_space");
 
+    double min_b = param->min_bound_;
+    double max_b = param->max_bound_;
+
     // create file for export
     std::ofstream geometry_file;
-    geometry_file.open(Concat(param->output_dir_, "/geometry.txt"));
-    geometry_file << "geometry\n{\n";
+    geometry_file.open(
+      Concat(param->output_dir_, "/blockMeshDict"));
+
+    geometry_file << "FoamFile\n{\n"
+      << "\tversion\t2.0;\n\tformat\tascii;\n"
+      << "\tclass\tdictionary;\n\tobject\tblockMeshDict;\n"
+      << "}\n"
+      << "\nconvertToMeters 0.01;\n"
+      << "\nvertices\n(\n"
+      << "\t(" << min_b << " " << min_b << " " << min_b << ")\n"
+      << "\t(" << max_b << " " << min_b << " " << min_b << ")\n"
+      << "\t(" << max_b << " " << max_b << " " << min_b << ")\n"
+      << "\t(" << min_b << " " << max_b << " " << min_b << ")\n"
+      << "\t(" << min_b << " " << min_b << " " << max_b << ")\n"
+      << "\t(" << max_b << " " << min_b << " " << max_b << ")\n"
+      << "\t(" << max_b << " " << max_b << " " << max_b << ")\n"
+      << "\t(" << min_b << " " << max_b << " " << max_b << ")\n"
+      << ");\n"
+      << "\nblocks\n("
+      << "\n\thex (0 1 2 3 4 5 6 7) ("
+      << max_b << " " << max_b << " " << max_b << ") simpleGrading (1 1 1)\n"
+      << ");\n"
+      << "\ngeometry\n{\n";
 
     double vert[24] = {0};
     double vert_master[3] = {0};
 
+    // for node in sim_space
     for (int i = 0; i < sim_space->GetNdaughters(); ++i) {
       auto node = sim_space->GetNode(i);
       TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
       // copies the box vertices in local coordinates
       box->SetBoxPoints(&vert[0]);
 
-      double min_vert[3] = {param->max_bound_, param->max_bound_, param->max_bound_};
-      double max_vert[3] = {param->min_bound_, param->min_bound_, param->min_bound_};
+      double min_vert[3] = {max_b, max_b, max_b};
+      double max_vert[3] = {min_b, min_b, min_b};
       for (auto point=0; point<8; point++) {
         // Convert each vertex to the reference frame of sim_space
         node->LocalToMaster(&vert[3*point], vert_master);
@@ -167,15 +192,13 @@ namespace bdm {
         }
       } // end for all vertices points
       // write corresponding object in Foam file
-      geometry_file << "\tbox\n\t{\n";
-
-      geometry_file << "\t\ttype\tsearchableBox;\n";
-      geometry_file << "\t\tmin\t(" << min_vert[0] << " "
-                    << min_vert[1] << " " << min_vert[2] << ");\n";
-      geometry_file << "\t\tmax\t(" << max_vert[0] << " "
-                    << max_vert[1] << " " << max_vert[2] << ");\n";
-
-      geometry_file << "\t}\n";
+      geometry_file << "\tbox\n\t{\n"
+        << "\t\ttype\tsearchableBox;\n"
+        << "\t\tmin\t(" << min_vert[0] << " "
+        << min_vert[1] << " " << min_vert[2] << ");\n"
+        << "\t\tmax\t(" << max_vert[0] << " "
+        << max_vert[1] << " " << max_vert[2] << ");\n"
+        << "\t}\n";
     } // end for node in sim_space
 
     geometry_file << "};";

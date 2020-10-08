@@ -20,6 +20,7 @@
 #include "behavior.h"
 #include "sim-param.h"
 #include "geom_construct.h"
+#include "geom.h"
 #include "util_methods.h"
 #include "navigation_util.h"
 #include "a_star.h"
