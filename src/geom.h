@@ -199,7 +199,6 @@ namespace bdm {
 
     geometry_file << "};";
     geometry_file.close();
-    std::cout << "geometry exported to Foam format" << std::endl;
   } // end ExportGeomToFoam
 
 // ---------------------------------------------------------------------------
@@ -246,6 +245,8 @@ inline void ExportControlDict(std::string openFoamDir) {
     ExportControlDict(openFoamDir);
     // export ROOT geometry to OpenFOAM format
     ExportGeomToFoam(openFoamDir);
+
+    std::cout << "OpenFoam files created" << std::endl;
   } // end ExportFoamFiles
 
 
