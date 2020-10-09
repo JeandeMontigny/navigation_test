@@ -123,22 +123,18 @@ namespace bdm {
     return false;
   } // end IsInsideStruct
 
-
 // ---------------------------------------------------------------------------
-  inline void ExportGeomToFoam() {
+  inline void ExportGeomToFoam(std::string openFoamDir) {
     auto* sim = Simulation::GetActive();
     auto* param = sim->GetParam();
-    auto* sparam = param->GetModuleParam<SimParam>();
-
-    auto* sim_space = gGeoManager->GetVolume("sim_space");
-
     double min_b = param->min_bound_;
     double max_b = param->max_bound_;
 
+    auto* sim_space = gGeoManager->GetVolume("sim_space");
+
     // create file for export
     std::ofstream geometry_file;
-    geometry_file.open(
-      Concat(param->output_dir_, "/blockMeshDict"));
+    geometry_file.open(Concat(openFoamDir, "/system/blockMeshDict"));
 
     geometry_file << "FoamFile\n{\n"
       << "\tversion\t2.0;\n\tformat\tascii;\n"
@@ -205,6 +201,53 @@ namespace bdm {
     geometry_file.close();
     std::cout << "geometry exported to Foam format" << std::endl;
   } // end ExportGeomToFoam
+
+// ---------------------------------------------------------------------------
+inline void ExportControlDict(std::string openFoamDir) {
+  // create file for export
+  std::ofstream geometry_control;
+   geometry_control.open(Concat(openFoamDir, "/system/controlDict"));
+
+   geometry_control << "FoamFile\n{\n"
+     << "\tversion\t2.0;\n\tformat\tascii;\n"
+     << "\tclass\tdictionary;\n\tobject\tcontrolDict;\n"
+     << "}\n"
+     << "\napplication\tnavigationFoam;\n"
+     << "startFrom\tlatestTime;\n"
+     << "startTime\t0;\n"
+     << "stopAt\tendTime;\n"
+     << "endTime\t10;\n"
+     << "deltaT\t0.005;\n"
+     << "writeControl\trunTime;\n"
+     << "writeInterval\t0.1;\n"
+     << "purgeWrite\t0;\n"
+     << "writeFormat\tascii;\n"
+     << "writePrecision\t3;\n"
+     << "writeCompression\toff;\n"
+     << "timeFormat\tgeneral;\n"
+     << "timePrecision\t3;\n"
+     << "runTimeModifiable\ttrue;\n";
+
+     geometry_control.close();
+  }
+
+// ---------------------------------------------------------------------------
+  inline void ExportFoamFiles(std::string openFoamDir) {
+    // create openFoam directories
+    if (std::system(Concat("mkdir ", openFoamDir).c_str())) {
+      std::cout << "couldn't create openFOAM directory for files export"
+                << std::endl;
+    }
+    if (std::system(Concat("mkdir ", openFoamDir, "/system/").c_str())) {
+      std::cout << "couldn't create openFOAM/system directory"
+               << std::endl;
+    };
+
+    ExportControlDict(openFoamDir);
+    // export ROOT geometry to OpenFOAM format
+    ExportGeomToFoam(openFoamDir);
+  } // end ExportFoamFiles
+
 
 }  // namespace bdm
 

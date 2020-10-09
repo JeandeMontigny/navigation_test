@@ -40,8 +40,9 @@ inline int Simulate(int argc, const char** argv) {
 
   //construct geom
   BuildBus();
-  // export ROOT geometry to OpenFOAM format
-  ExportGeomToFoam();
+  // create OpenFOAM directories and files
+  std::string openFoamDir = Concat(param->output_dir_, "/../../openFOAM/");
+  ExportFoamFiles(openFoamDir);
 
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
