@@ -48,12 +48,15 @@ inline int Simulate(int argc, const char** argv) {
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
 
   // print navigation_map
-  // for (int map_x = 0; map_x < navigation_map.size(); map_x++) {
-  //   for (int map_y = 0; map_y < navigation_map[0].size(); map_y++) {
-  //     std::cout << navigation_map[map_x][map_y];
-  //   }
-  //   std::cout << std::endl;
-  // }
+  bool print_navigation_map = false;
+  if (print_navigation_map) {
+    for (int map_x = 0; map_x < navigation_map.size(); map_x++) {
+      for (int map_y = 0; map_y < navigation_map[0].size(); map_y++) {
+        std::cout << navigation_map[map_x][map_y];
+      }
+      std::cout << std::endl;
+    }
+  }
 
   //bus population creation
   InitialBusPopulationCreation(&navigation_map);
