@@ -170,8 +170,8 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
   GetInfectedBehaviour() : BaseBiologyModule(gAllEventIds) {}
 
   void Run(SimObject* so) override {
-    auto* sim = Simulation::GetActive();
-    auto* rm = sim->GetResourceManager();
+    // auto* sim = Simulation::GetActive();
+    // auto* rm = sim->GetResourceManager();
 
     auto* human = bdm_static_cast<Human*>(so);
 
