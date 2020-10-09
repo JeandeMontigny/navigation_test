@@ -39,7 +39,7 @@ namespace bdm {
       mBlocks = geom->MakeBox("floor_roof", Iron, 550, 125, 1);
       mBlocks->SetLineColor(kBlack);
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -125));
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, 125));
+      sim_space->AddNodeOverlap(mBlocks, 2, new TGeoTranslation(0, 0, 125));
 
       // left side
       mBlocks = geom->MakeBox("left_side", Iron, 550, 1, 125);
@@ -48,23 +48,23 @@ namespace bdm {
       mBlocks = geom->MakeBox("back_right_side", Iron, 150, 1, 125);
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(400, 125, 0));
       mBlocks = geom->MakeBox("middle_right_side", Iron, 285, 1, 125);
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-135, 125, 0));
+      sim_space->AddNodeOverlap(mBlocks, 2, new TGeoTranslation(-135, 125, 0));
       mBlocks = geom->MakeBox("front_right_side", Iron, 15, 1, 125);
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-535, 125, 0));
+      sim_space->AddNodeOverlap(mBlocks, 3, new TGeoTranslation(-535, 125, 0));
       // right side top
       mBlocks = geom->MakeBox("right_side_top", Iron, 50, 1, 25);
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-470, 125, 100));
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(200, 125, 100));
+      sim_space->AddNodeOverlap(mBlocks, 2, new TGeoTranslation(200, 125, 100));
       // right side doors
       mBlocks = geom->MakeBox("right_side_top", Iron, 50, 1, 100);
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-470, 125, -25));
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(200, 125, -25));
+      sim_space->AddNodeOverlap(mBlocks, 3, new TGeoTranslation(-470, 125, -25));
+      sim_space->AddNodeOverlap(mBlocks, 4, new TGeoTranslation(200, 125, -25));
 
       // back and front
       mBlocks = geom->MakeBox("back_front", Iron, 1, 125, 125);
       mBlocks->SetLineColor(kBlack);
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(550, 0, 0));
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-550, 0, 0));
+      sim_space->AddNodeOverlap(mBlocks, 2, new TGeoTranslation(-550, 0, 0));
 
       // driver side
       mBlocks = geom->MakeBox("driver_side", Iron, 62, 1, 50);
@@ -76,26 +76,28 @@ namespace bdm {
       sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-425, -70, 0));
 
       // seats
+      int seat_i = 0;
+      int seat_j = 0;
       mBlocks = geom->MakeBox("seats", Air, 20, 20, 20);
       mBlocks->SetLineColor(kGray);
       TGeoVolume *mBlocks_back = geom->MakeBox("seat_back", Iron, 2, 20, 50);
       mBlocks_back->SetLineColor(kBlack);
       // driver seat
-      sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-475, -65, -100));
+      sim_space->AddNodeOverlap(mBlocks, ++seat_i, new TGeoTranslation(-475, -65, -100));
       for (int j = -5; j < 7; j++) {
         int x_position = j*75+45;
         // left rows
-        sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, -95, -100));
-        sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, -50, -100));
+        sim_space->AddNodeOverlap(mBlocks, ++seat_i, new TGeoTranslation(x_position, -95, -100));
+        sim_space->AddNodeOverlap(mBlocks, ++seat_i, new TGeoTranslation(x_position, -50, -100));
         //seat back
-        sim_space->AddNodeOverlap(mBlocks_back, 1, new TGeoTranslation(x_position+20, -95, -75));
-        sim_space->AddNodeOverlap(mBlocks_back, 1, new TGeoTranslation(x_position+20, -50, -75));
+        sim_space->AddNodeOverlap(mBlocks_back, ++seat_j, new TGeoTranslation(x_position+20, -95, -75));
+        sim_space->AddNodeOverlap(mBlocks_back, ++seat_j, new TGeoTranslation(x_position+20, -50, -75));
         // right rows
         if (j!=2 && j!=3) {
-          sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, 95, -100));
-          sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(x_position, 50, -100));
-          sim_space->AddNodeOverlap(mBlocks_back, 1, new TGeoTranslation(x_position+20, 95, -75));
-          sim_space->AddNodeOverlap(mBlocks_back, 1, new TGeoTranslation(x_position+20, 50, -75));
+          sim_space->AddNodeOverlap(mBlocks, ++seat_i, new TGeoTranslation(x_position, 95, -100));
+          sim_space->AddNodeOverlap(mBlocks, ++seat_i, new TGeoTranslation(x_position, 50, -100));
+          sim_space->AddNodeOverlap(mBlocks_back, ++seat_j, new TGeoTranslation(x_position+20, 95, -75));
+          sim_space->AddNodeOverlap(mBlocks_back, ++seat_j, new TGeoTranslation(x_position+20, 50, -75));
         }
       }
     // close geometry
