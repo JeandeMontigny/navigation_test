@@ -170,7 +170,7 @@ namespace bdm {
         , "\t\t(\n");
 
     double vert[24] = {0};
-    double vert_master[3] = {0};
+    double vert_master[8][3];
 
     // for node in sim_space
     for (int i = 0; i < sim_space->GetNdaughters(); i++) {
@@ -180,20 +180,25 @@ namespace bdm {
       box->SetBoxPoints(&vert[0]);
       node->GetName(); // name of this box
       // for each vertex of this box
-      for (auto point=0; point<8; point++) {
+      for (auto point = 0; point < 8; point++) {
         // Convert each vertex to the reference frame of sim_space
-        node->LocalToMaster(&vert[3*point], vert_master);
-        // add vertex coordinates into vertices section
-        geometry_file << "\t(" << vert_master[0] << " "
-          << vert_master[1] << " " << vert_master[2] << ")\n";
+        node->LocalToMaster(&vert[3*point], vert_master[point]);
       } // end for all vertices points
+      //TODO: sort vert_master
+      // double vert_sort[3] = {0};
+      for (int vert_i = 0; vert_i < 8; vert_i++) {
+        // add vertex coordinates into vertices section
+        geometry_file << "\t(" << vert_master[vert_i][0] << " "
+          << vert_master[vert_i][1] << " " << vert_master[vert_i][2] << ")\n";
+      } // end write each vertice of this box
       // add each face of this box to boundary section
-      boundaries += Concat("\t\t\t(vert1 vert2 vert3 vert4)\n"
-        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
-        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
-        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
-        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
-        , "\t\t\t(vert1 vert2 vert3 vert4)\n");
+      boundaries += Concat(
+          "\t\t\t(", i*8+8, " ", i*8+9, " ", i*8+10, " ", i*8+11, ")\n"
+        , "\t\t\t(", i*8+8, " ", i*8+9, " ", i*8+13, " ", i*8+12, ")\n"
+        , "\t\t\t(", i*8+8, " ", i*8+11, " ", i*8+15, " ", i*8+12, ")\n"
+        , "\t\t\t(", i*8+9, " ", i*8+10, " ", i*8+14, " ", i*8+13, ")\n"
+        , "\t\t\t(", i*8+11, " ", i*8+10, " ", i*8+14, " ", i*8+15, ")\n"
+        , "\t\t\t(", i*8+12, " ", i*8+13, " ", i*8+14, " ", i*8+15, ")\n");
     } // end for node in sim_space
 
     geometry_file << ");\n"
