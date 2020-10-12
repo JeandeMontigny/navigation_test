@@ -155,6 +155,19 @@ namespace bdm {
       << "\n\thex (0 1 2 3 4 5 6 7) ("
       << max_b << " " << max_b << " " << max_b << ") simpleGrading (1 1 1)\n"
       << ");\n"
+      << "\nboundary\n(\n"
+      << "\twall\n\t{\n"
+      << "\t\ttype wall;\n"
+      << "\t\tfaces\n\t\t(\n"
+      << "\t\t\t(0 1 2 3)\n"
+      << "\t\t\t(0 1 5 4)\n"
+      << "\t\t\t(0 3 7 4)\n"
+      << "\t\t\t(1 2 6 5)\n"
+      << "\t\t\t(3 2 6 7)\n"
+      << "\t\t\t(4 5 6 7)\n"
+      << "\t\t);\n"
+      << "\t}\n"
+      << ");\n"
       << "\ngeometry\n{\n";
 
     double vert[24] = {0};
