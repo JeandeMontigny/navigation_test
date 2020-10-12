@@ -166,7 +166,8 @@ namespace bdm {
         , "\t}\n"
         , "\tboxes\n\t{\n"
         , "\t\ttype wall;\n"
-        , "\t\tfaces\n");
+        , "\t\tfaces\n"
+        , "\t\t(\n");
 
     double vert[24] = {0};
     double vert_master[3] = {0};
