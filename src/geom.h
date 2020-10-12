@@ -149,68 +149,64 @@ namespace bdm {
       << "\t(" << min_b << " " << min_b << " " << max_b << ")\n"
       << "\t(" << max_b << " " << min_b << " " << max_b << ")\n"
       << "\t(" << max_b << " " << max_b << " " << max_b << ")\n"
-      << "\t(" << min_b << " " << max_b << " " << max_b << ")\n"
-      << ");\n"
-      << "\nblocks\n("
-      << "\n\thex (0 1 2 3 4 5 6 7) ("
-      << max_b << " " << max_b << " " << max_b << ") simpleGrading (1 1 1)\n"
-      << ");\n"
-      << "\nboundary\n(\n"
-      << "\twall\n\t{\n"
-      << "\t\ttype wall;\n"
-      << "\t\tfaces\n\t\t(\n"
-      << "\t\t\t(0 1 2 3)\n"
-      << "\t\t\t(0 1 5 4)\n"
-      << "\t\t\t(0 3 7 4)\n"
-      << "\t\t\t(1 2 6 5)\n"
-      << "\t\t\t(3 2 6 7)\n"
-      << "\t\t\t(4 5 6 7)\n"
-      << "\t\t);\n"
-      << "\t}\n"
-      << ");\n"
-      << "\ngeometry\n{\n";
+      << "\t(" << min_b << " " << max_b << " " << max_b << ")\n";
+
+      std::string boundaries;
+      boundaries += Concat("\nboundary\n(\n"
+        , "\tsim_space\n\t{\n"
+        , "\t\ttype wall;\n"
+        , "\t\tfaces\n\t\t(\n"
+        , "\t\t\t(0 1 2 3)\n"
+        , "\t\t\t(0 1 5 4)\n"
+        , "\t\t\t(0 3 7 4)\n"
+        , "\t\t\t(1 2 6 5)\n"
+        , "\t\t\t(3 2 6 7)\n"
+        , "\t\t\t(4 5 6 7)\n"
+        , "\t\t);\n"
+        , "\t}\n"
+        , "\tboxes\n\t{\n"
+        , "\t\ttype wall;\n"
+        , "\t\tfaces\n");
 
     double vert[24] = {0};
     double vert_master[3] = {0};
 
     // for node in sim_space
-    for (int i = 0; i < sim_space->GetNdaughters(); ++i) {
+    for (int i = 0; i < sim_space->GetNdaughters(); i++) {
       auto node = sim_space->GetNode(i);
       TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
       // copies the box vertices in local coordinates
       box->SetBoxPoints(&vert[0]);
-
-      double min_vert[3] = {max_b, max_b, max_b};
-      double max_vert[3] = {min_b, min_b, min_b};
+      node->GetName(); // name of this box
+      // for each vertex of this box
       for (auto point=0; point<8; point++) {
         // Convert each vertex to the reference frame of sim_space
         node->LocalToMaster(&vert[3*point], vert_master);
-        if (vert_master[0] < min_vert[0] &&
-          vert_master[1] < min_vert[1] &&
-          vert_master[2] < min_vert[2]) {
-          min_vert[0] = vert_master[0];
-          min_vert[1] = vert_master[1];
-          min_vert[2] = vert_master[2];
-        }
-        if (vert_master[0] > max_vert[0] &&
-          vert_master[1] > max_vert[1] &&
-          vert_master[2] > max_vert[2]) {
-          max_vert[0] = vert_master[0];
-          max_vert[1] = vert_master[1];
-          max_vert[2] = vert_master[2];
-        }
+        // add vertex coordinates into vertices section
+        geometry_file << "\t(" << vert_master[0] << " "
+          << vert_master[1] << " " << vert_master[2] << ")\n";
       } // end for all vertices points
-      // write corresponding object in Foam file
-      geometry_file << "\tbox\n\t{\n"
-        << "\t\ttype\tsearchableBox;\n"
-        << "\t\tmin\t(" << min_vert[0] << " "
-        << min_vert[1] << " " << min_vert[2] << ");\n"
-        << "\t\tmax\t(" << max_vert[0] << " "
-        << max_vert[1] << " " << max_vert[2] << ");\n"
-        << "\t}\n";
+      // add each face of this box to boundary section
+      boundaries += Concat("\t\t\t(vert1 vert2 vert3 vert4)\n"
+        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
+        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
+        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
+        , "\t\t\t(vert1 vert2 vert3 vert4)\n"
+        , "\t\t\t(vert1 vert2 vert3 vert4)\n");
     } // end for node in sim_space
 
-    geometry_file << "};";
+    geometry_file << ");\n"
+      << "\nblocks\n(\n"
+      << "\thex (0 1 2 3 4 5 6 7) ("
+      << max_b << " " << max_b << " " << max_b << ") simpleGrading (1 1 1)\n"
+      << ");\n"; // end of blocks section
+
+    boundaries += Concat( "\t\t);\n"
+      , "\t}\n"
+      , ");\n"); // end boundary section
+
+    geometry_file << boundaries;
+    geometry_file << "mergePatchPairs();";
     geometry_file.close();
   } // end ExportGeomToFoam
 
