@@ -151,6 +151,11 @@ namespace bdm {
       << "\t(" << max_b << " " << max_b << " " << max_b << ")\n"
       << "\t(" << min_b << " " << max_b << " " << max_b << ")\n";
 
+      std::string blocks;
+      blocks += Concat("\nblocks\n(\n"
+        , "\thex (0 1 2 3 4 5 6 7) ("
+        , max_b, " ", max_b, " ", max_b, ") simpleGrading (1 1 1)\n");
+
       std::string boundaries;
       boundaries += Concat("\nboundary\n(\n"
         , "\tsim_space\n\t{\n"
@@ -171,7 +176,9 @@ namespace bdm {
 
     double vert[24] = {0};
     double vert_master[8][3];
-
+    double min_x = max_b; double max_x = min_b;
+    double min_y = max_b; double max_y = min_b;
+    double min_z = max_b; double max_z = min_b;
     // for node in sim_space
     for (int i = 0; i < sim_space->GetNdaughters(); i++) {
       auto node = sim_space->GetNode(i);
@@ -183,14 +190,100 @@ namespace bdm {
       for (auto point = 0; point < 8; point++) {
         // Convert each vertex to the reference frame of sim_space
         node->LocalToMaster(&vert[3*point], vert_master[point]);
+        // find min and max values for x, y, z
+        if (vert_master[point][0] > max_x) {
+          max_x = vert_master[point][0];
+        }
+        if (vert_master[point][0] < min_x) {
+          min_x = vert_master[point][0];
+        }
+        if (vert_master[point][1] > max_y) {
+          max_y = vert_master[point][1];
+        }
+        if (vert_master[point][1] < min_y) {
+          min_y = vert_master[point][1];
+        }
+        if (vert_master[point][2] > max_z) {
+          max_z = vert_master[point][2];
+        }
+        if (vert_master[point][2] < min_z) {
+          min_z = vert_master[point][2];
+        }
       } // end for all vertices points
-      //TODO: sort vert_master
+
+      // sort vert_master
+      // - - - // vertice 0
+      // + - - // vertice 1
+      // + + - // vertice 2
+      // - + - // vertice 3
+      // - - + // vertice 4
+      // + - + // vertice 5
+      // + + + // vertice 6
+      // - + + // vertice 7
+      double vert_master_sorted[8][3];
+      // TODO: cleaner way
+      for (auto vert = 0; vert < 8; vert++) {
+        if (vert_master[vert][0] == min_x && vert_master[vert][1] == min_y
+          && vert_master[vert][2] == min_z) {
+            vert_master_sorted[0][0] = vert_master[vert][0];
+            vert_master_sorted[0][1] = vert_master[vert][1];
+            vert_master_sorted[0][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == max_x && vert_master[vert][1] == min_y
+          && vert_master[vert][2] == min_z) {
+            vert_master_sorted[1][0] = vert_master[vert][0];
+            vert_master_sorted[1][1] = vert_master[vert][1];
+            vert_master_sorted[1][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == max_x && vert_master[vert][1] == max_y
+          && vert_master[vert][2] == min_z) {
+            vert_master_sorted[2][0] = vert_master[vert][0];
+            vert_master_sorted[2][1] = vert_master[vert][1];
+            vert_master_sorted[2][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == min_x && vert_master[vert][1] == max_y
+          && vert_master[vert][2] == min_z) {
+            vert_master_sorted[3][0] = vert_master[vert][0];
+            vert_master_sorted[3][1] = vert_master[vert][1];
+            vert_master_sorted[3][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == min_x && vert_master[vert][1] == min_y
+          && vert_master[vert][2] == max_z) {
+            vert_master_sorted[4][0] = vert_master[vert][0];
+            vert_master_sorted[4][1] = vert_master[vert][1];
+            vert_master_sorted[4][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == max_x && vert_master[vert][1] == min_y
+          && vert_master[vert][2] == max_z) {
+            vert_master_sorted[5][0] = vert_master[vert][0];
+            vert_master_sorted[5][1] = vert_master[vert][1];
+            vert_master_sorted[5][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == max_x && vert_master[vert][1] == max_y
+          && vert_master[vert][2] == max_z) {
+            vert_master_sorted[6][0] = vert_master[vert][0];
+            vert_master_sorted[6][1] = vert_master[vert][1];
+            vert_master_sorted[6][2] = vert_master[vert][2];
+        }
+        if (vert_master[vert][0] == min_x && vert_master[vert][1] == max_y
+          && vert_master[vert][2] == max_z) {
+            vert_master_sorted[7][0] = vert_master[vert][0];
+            vert_master_sorted[7][1] = vert_master[vert][1];
+            vert_master_sorted[7][2] = vert_master[vert][2];
+        }
+      }
+
       // double vert_sort[3] = {0};
       for (int vert_i = 0; vert_i < 8; vert_i++) {
         // add vertex coordinates into vertices section
-        geometry_file << "\t(" << vert_master[vert_i][0] << " "
-          << vert_master[vert_i][1] << " " << vert_master[vert_i][2] << ")\n";
+        geometry_file << "\t(" << vert_master_sorted[vert_i][0] << " "
+          << vert_master_sorted[vert_i][1] << " "
+          << vert_master_sorted[vert_i][2] << ")\n";
       } // end write each vertice of this box
+      // add each vertex of this box to blocks section
+      blocks += Concat ("\thex (",i*8+8, " ", i*8+9, " ", i*8+10, " "
+        , i*8+11, " ", i*8+12, " ", i*8+13, " ", i*8+14, " ", i*8+15
+        , ") (1 1 1) simpleGrading (1 1 1)\n");
       // add each face of this box to boundary section
       boundaries += Concat(
           "\t\t\t(", i*8+8, " ", i*8+9, " ", i*8+10, " ", i*8+11, ")\n"
@@ -201,13 +294,11 @@ namespace bdm {
         , "\t\t\t(", i*8+12, " ", i*8+13, " ", i*8+14, " ", i*8+15, ")\n");
     } // end for node in sim_space
 
-    geometry_file << ");\n"
-      << "\nblocks\n(\n"
-      << "\thex (0 1 2 3 4 5 6 7) ("
-      << max_b << " " << max_b << " " << max_b << ") simpleGrading (1 1 1)\n"
-      << ");\n"; // end of blocks section
+    geometry_file << ");\n"; // end vertices section
 
-    boundaries += Concat( "\t\t);\n"
+    geometry_file << blocks << ");\n"; // end of blocks section
+
+    boundaries += Concat("\t\t);\n"
       , "\t}\n"
       , ");\n"); // end boundary section
 
