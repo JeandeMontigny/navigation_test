@@ -113,10 +113,7 @@ namespace bdm {
 
     TGeoNode* node = nav->FindNode(position[0], position[1], position[2]);
     std::string medium_name = node->GetMedium()->GetName();
-    // std::cout << "Point "
-    //           << position[0] << " " << position[1] << " " << position[2]
-    //           << " is inside " << node->GetName()
-    //           << " (" << node->GetMedium()->GetName() << ")" << std::endl;
+
     if (medium_name != "Air") {
       return true;
     }
@@ -273,7 +270,6 @@ namespace bdm {
         }
       }
 
-      // double vert_sort[3] = {0};
       for (int vert_i = 0; vert_i < 8; vert_i++) {
         // add vertex coordinates into vertices section
         geometry_file << "\t(" << vert_master_sorted[vert_i][0] << " "
