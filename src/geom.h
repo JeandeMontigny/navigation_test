@@ -132,7 +132,7 @@ namespace bdm {
 
     // create file for export
     std::ofstream geometry_file;
-    geometry_file.open(Concat(openFoamDir, "/system/blockMeshDict"));
+    geometry_file.open(Concat(openFoamDir, "system/blockMeshDict"));
 
     // TODO: add agents (if any) as spheres
     //       add their mouth position and direction
@@ -316,7 +316,7 @@ namespace bdm {
 inline void ExportControlDict(std::string openFoamDir) {
   // create file for export
   std::ofstream control_file;
-  control_file.open(Concat(openFoamDir, "/system/controlDict"));
+  control_file.open(Concat(openFoamDir, "system/controlDict"));
 
   control_file << "FoamFile\n{\n"
     << "\tversion\t2.0;\n\tformat\tascii;\n"
@@ -345,7 +345,7 @@ inline void ExportControlDict(std::string openFoamDir) {
   inline void ExportFvSchenes(std::string openFoamDir) {
     // create file for export
     std::ofstream schemes_file;
-    schemes_file.open(Concat(openFoamDir, "/system/fvSchemes"));
+    schemes_file.open(Concat(openFoamDir, "system/fvSchemes"));
 
     schemes_file << "FoamFile\n{\n"
       << "\tversion\t2.0;\n\tformat\tascii;\n"
@@ -369,7 +369,7 @@ inline void ExportControlDict(std::string openFoamDir) {
   inline void ExportFvSolution(std::string openFoamDir) {
     // create file for export
     std::ofstream solution_file;
-    solution_file.open(Concat(openFoamDir, "/system/fvSolution"));
+    solution_file.open(Concat(openFoamDir, "system/fvSolution"));
 
     solution_file << "FoamFile\n{\n"
       << "\tversion\t2.0;\n\tformat\tascii;\n"
@@ -397,14 +397,14 @@ inline void ExportControlDict(std::string openFoamDir) {
       std::cout << "couldn't create openFOAM directory for files export"
                 << std::endl;
     }
-    if (std::system(Concat("mkdir ", openFoamDir, "/system/").c_str())) {
+    if (std::system(Concat("mkdir ", openFoamDir, "system/").c_str())) {
       std::cout << "couldn't create openFOAM/system directory"
                << std::endl;
     };
 
     // create empty ai.foam for paraview visualisation
     std::ofstream visu_file;
-    visu_file.open(Concat(openFoamDir, "/ai.foam"));
+    visu_file.open(Concat(openFoamDir, "ai.foam"));
     visu_file.close();
 
     ExportControlDict(openFoamDir);
