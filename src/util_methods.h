@@ -12,6 +12,22 @@
 
 namespace bdm {
 
+// ---------------------------------------------------------------------------
+  inline std::vector<Double3> GetAgentsPositionList() {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+
+    std::vector<Double3> agents_position_list;
+
+    auto get_agents_position_list = [&agents_position_list](const auto* neighbor) {
+      auto* hu = bdm_static_cast<const Cell*>(neighbor);
+      agents_position_list.push_back(hu->GetPosition());
+    };
+    rm->ApplyOnAllElements(get_agents_position_list);
+
+    return agents_position_list;
+  } // end GetAgentsPositionList
+
 // ------------------------------------------------------------------------
   inline float TriangleArea(double x1, double y1, double x2, double y2, double x3, double y3) {
      return std::abs((x1*(y2-y3) + x2*(y3-y1)+ x3*(y1-y2))/2.0);

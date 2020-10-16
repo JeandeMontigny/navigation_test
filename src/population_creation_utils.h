@@ -34,22 +34,6 @@ namespace bdm {
   } // end GetSeatsPositionList
 
 // ---------------------------------------------------------------------------
-  static std::vector<Double3> GetAgentsPositionList() {
-    auto* sim = Simulation::GetActive();
-    auto* rm = sim->GetResourceManager();
-
-    std::vector<Double3> agents_position_list;
-
-    auto get_agents_position_list = [&agents_position_list](const auto* neighbor) {
-      auto* hu = bdm_static_cast<const Human*>(neighbor);
-      agents_position_list.push_back(hu->GetPosition());
-    };
-    rm->ApplyOnAllElements(get_agents_position_list);
-
-    return agents_position_list;
-  } // end GetAgentsPositionList
-
-// ---------------------------------------------------------------------------
   static bool IsExit(Double3 position) {
     return (position[0] > 190 && position[0] < 210 &&
             position[1] > 100 && position[1] < 120);
