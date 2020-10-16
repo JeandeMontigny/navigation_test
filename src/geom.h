@@ -7,6 +7,7 @@
 #include "TGeoBBox.h"
 #include "core/container/math_array.h"
 #include "sim-param.h"
+#include "util_methods.h"
 
 namespace bdm {
 
@@ -132,6 +133,12 @@ namespace bdm {
     // create file for export
     std::ofstream geometry_file;
     geometry_file.open(Concat(openFoamDir, "/system/blockMeshDict"));
+
+    // TODO: add agents (if any) as spheres
+    //       add their mouth position and direction
+    //       for breathing/sneezing
+
+    auto agents_list = GetAgentsPositionList();
 
     // TODO: get min and max x, y, z coord of simu
     geometry_file << "FoamFile\n{\n"
