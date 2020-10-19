@@ -31,22 +31,6 @@ namespace bdm {
   } // end GetAgentsPositionList
 
 // ---------------------------------------------------------------------------
-  inline std::vector<std::vector<double>> GetAgentsDirectionList() {
-    auto* sim = Simulation::GetActive();
-    auto* rm = sim->GetResourceManager();
-
-    std::vector<std::vector<double>> agents_direction_list;
-
-    auto get_agents_direction_list = [&agents_direction_list](SimObject* so) {
-      auto* hu = bdm_static_cast<Human*>(so);
-      agents_direction_list.push_back(hu->orientation_);
-    };
-    rm->ApplyOnAllElements(get_agents_direction_list);
-
-    return agents_direction_list;
-  } // end GetAgentsDirectionList
-
-// ---------------------------------------------------------------------------
   static std::vector<Double3> GetSeatsPositionList() {
     std::vector<Double3> seats_list;
     for (int j = -5; j < 7; j++) {
