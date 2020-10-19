@@ -36,11 +36,6 @@ struct Navigation : public BaseBiologyModule {
     auto* sim = Simulation::GetActive();
     auto* random = sim->GetRandom();
 
-    // execute this BM only evey x steps to allow diffusion
-    if (sim->GetScheduler()->GetSimulatedSteps() % 5 != 0) {
-      return;
-    }
-
     auto* human = bdm_static_cast<Human*>(so);
     const auto& position = human->GetPosition();
     std::vector<double> previous_position = {position[0], position[1]};
