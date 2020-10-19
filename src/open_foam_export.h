@@ -17,6 +17,7 @@ namespace bdm {
     auto* sim = Simulation::GetActive();
     auto* rm = sim->GetResourceManager();
     auto* param = sim->GetParam();
+    auto* sparam = param->GetModuleParam<SimParam>();
     double min_b = param->min_bound_;
     double max_b = param->max_bound_;
 
@@ -26,161 +27,24 @@ namespace bdm {
     std::ofstream geometry_file;
     geometry_file.open(Concat(openFoamDir, "system/blockMeshDict"));
 
-    // TODO: add agents (if any) as spheres
-    //       add their mouth position and direction
-    //       for breathing/sneezing
+      std::string head;
+      head += Concat("FoamFile\n{\n"
+        , "\tversion\t2.0;\n\tformat\tascii;\n"
+        , "\tclass\tdictionary;\n\tobject\tblockMeshDict;\n"
+        , "}\n"
+        , "\nconvertToMeters 0.01;\n");
 
-    auto agents_position = GetAgentsPositionList();
-    auto agents_direction = GetAgentsDirectionList();
-
-    std::string agents_geometry;
-    std::string agents_vertices;
-    std::string agents_blocks;
-    std::string agents_edges;
-    std::string agents_faces;
-    std::string agents_boundaries;
-
-    agents_geometry += Concat("geometry\n{");
-
-    // for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
-    //   Double3 pos = agents_position[agent];
-    // }
-
-/* using geometry:
-
-    geometry
-    {
-        sphere
-        {
-            type searchableSphere;
-            centre (0 0 0);
-            radius 1;
-        }
-    }
-
-    scale 1;
-
-    n    10;
-
-    v    0.5773502;
-    mv  -0.5773502;
-    vh   0.2886751;
-    mvh -0.2886751;
-
-    a    0.7071067;
-    ma  -0.7071067;
-    ah   0.3464101;
-    mah -0.3464101;
-
-    vertices
-    (
-        ($mvh $mvh $mvh)
-        ( $vh $mvh $mvh)
-        ( $vh  $vh $mvh)
-        ($mvh  $vh $mvh)
-        ($mvh $mvh  $vh)
-        ( $vh $mvh  $vh)
-        ( $vh  $vh  $vh)
-        ($mvh  $vh  $vh)
-
-        ($mv $mv $mv)
-        ( $v $mv $mv)
-        ( $v  $v $mv)
-        ($mv  $v $mv)
-        ($mv $mv  $v)
-        ( $v $mv  $v)
-        ( $v  $v  $v)
-        ($mv  $v  $v)
-    );
-
-    blocks
-    (
-        hex ( 0  1  2  3  4  5  6  7) ($n $n $n) simpleGrading (1 1 1)
-        hex ( 9  8 12 13  1  0  4  5) ($n $n $n) simpleGrading (1 1 1)
-        hex (10  9 13 14  2  1  5  6) ($n $n $n) simpleGrading (1 1 1)
-        hex (11 10 14 15  3  2  6  7) ($n $n $n) simpleGrading (1 1 1)
-        hex ( 8 11 15 12  0  3  7  4) ($n $n $n) simpleGrading (1 1 1)
-        hex ( 8  9 10 11  0  1  2  3) ($n $n $n) simpleGrading (1 1 1)
-        hex (13 12 15 14  5  4  7  6) ($n $n $n) simpleGrading (1 1 1)
-    );
-
-    edges
-    (
-        arc  8  9 (0 $ma $ma)
-        arc 10 11 (0 $a $ma)
-        arc 14 15 (0 $a $a)
-        arc 12 13 (0 $ma $a)
-
-        arc  8 11 ($ma 0 $ma)
-        arc  9 10 ($a 0 $ma)
-        arc 13 14 ($a 0 $a)
-        arc 12 15 ($ma 0 $a)
-
-        arc  8 12 ($ma $ma 0)
-        arc  9 13 ($a $ma 0)
-        arc 10 14 ($a $a 0)
-        arc 11 15 ($ma $a 0)
-
-
-        arc  0  1 (0 $mah $mah)
-        arc  2  3 (0 $ah $mah)
-        arc  6  7 (0 $ah $ah)
-        arc  4  5 (0 $mah $ah)
-
-        arc  0  3 ($mah 0 $mah)
-        arc  1  2 ($ah 0 $mah)
-        arc  5  6 ($ah 0 $ah)
-        arc  4  7 ($mah 0 $ah)
-
-        arc  0  4 ($mah $mah 0)
-        arc  1  5 ($ah $mah 0)
-        arc  2  6 ($ah $ah 0)
-        arc  3  7 ($mah $ah 0)
-    );
-
-    faces
-    (
-        project ( 8 12 15 11) sphere
-        project (10 14 13  9) sphere
-        project ( 9 13 12  8) sphere
-        project (11 15 14 10) sphere
-        project ( 8 11 10  9) sphere
-        project (12 13 14 15) sphere
-    );
-
-    boundary
-    (
-        walls
-        {
-            type wall;
-            faces
-            (
-                ( 8 12 15 11)
-                (10 14 13  9)
-                ( 9 13 12  8)
-                (11 15 14 10)
-                ( 8 11 10  9)
-                (12 13 14 15)
-            );
-        }
-    );
-*/
-
-    // TODO: get min and max x, y, z coord of simu
-    geometry_file << "FoamFile\n{\n"
-      << "\tversion\t2.0;\n\tformat\tascii;\n"
-      << "\tclass\tdictionary;\n\tobject\tblockMeshDict;\n"
-      << "}\n"
-      << "\nconvertToMeters 0.01;\n"
-      << "\nvertices\n(\n"
-      << "\t(" << -550 << " " << -126 << " " << -126 << ")\n"
-      << "\t(" << 550 << " " << -126 << " " << -126 << ")\n"
-      << "\t(" << 550 << " " << 126 << " " << -126 << ")\n"
-      << "\t(" << -550 << " " << 126 << " " << -126 << ")\n"
-      << "\t(" << -550 << " " << -126 << " " << 126 << ")\n"
-      << "\t(" << 550 << " " << -126 << " " << 126 << ")\n"
-      << "\t(" << 550 << " " << 126 << " " << 126 << ")\n"
-      << "\t(" << -550 << " " << 126 << " " << 126 << ")\n";
+      std::string vertices;
+      // TODO: get min and max x, y, z coord of simu
+      vertices += Concat("\nvertices\n(\n"
+      , "\t(", -550, " " , -126 , " ", -126, ")\n"
+      , "\t(", 550, " " , -126 , " ", -126, ")\n"
+      , "\t(", 550, " " , 126 , " ", -126, ")\n"
+      , "\t(", -550, " " , 126 , " ", -126, ")\n"
+      , "\t(", -550, " " , -126 , " ", 126, ")\n"
+      , "\t(", 550, " " , -126 , " ", 126, ")\n"
+      , "\t(", 550, " " , 126 , " ", 126, ")\n"
+      , "\t(", -550, " " , 126 , " ", 126, ")\n");
 
       std::string blocks;
       blocks += Concat("\nblocks\n(\n"
@@ -307,12 +171,12 @@ namespace bdm {
 
       for (int vert_i = 0; vert_i < 8; vert_i++) {
         // add vertex coordinates into vertices section
-        geometry_file << "\t(" << vert_master_sorted[vert_i][0] << " "
-          << vert_master_sorted[vert_i][1] << " "
-          << vert_master_sorted[vert_i][2] << ")\n";
+        vertices += Concat("\t(", vert_master_sorted[vert_i][0], " "
+          , vert_master_sorted[vert_i][1], " "
+          , vert_master_sorted[vert_i][2], ")\n");
       } // end write each vertice of this box
       // add each vertex of this box to blocks section
-      blocks += Concat ("\thex (",i*8+8, " ", i*8+9, " ", i*8+10, " "
+      blocks += Concat("\thex (",i*8+8, " ", i*8+9, " ", i*8+10, " "
         , i*8+11, " ", i*8+12, " ", i*8+13, " ", i*8+14, " ", i*8+15
         , ") (1 1 1) simpleGrading (1 1 1)\n");
       // add each face of this box to boundary section
@@ -325,16 +189,125 @@ namespace bdm {
         , "\t\t\t(", i*8+12, " ", i*8+13, " ", i*8+14, " ", i*8+15, ")\n");
     } // end for node in sim_space
 
-    geometry_file << ");\n"; // end vertices section
+    boundaries += "\t\t);\n\t}\n"; // end boxes section of boundary
 
-    geometry_file << blocks << ");\n"; // end of blocks section
+    // last vertice index used for geometry
+    int last_geom_vertice = sim_space->GetNdaughters()*8+7;
 
-    boundaries += Concat("\t\t);\n"
-      , "\t}\n"
-      , ");\n"); // end boundary section
 
-    geometry_file << boundaries;
+    // WARNING: check that agent's order is the same.
+    //          if not, don't use methods, and do both list construction
+    //          together here
+    auto agents_position = GetAgentsPositionList();
+
+    // TODO: add agent's mouth position and direction for spreading (inlet)
+    auto agents_direction = GetAgentsDirectionList();
+
+    std::string agents_geometry = "\ngeometry\n{\n";
+    std::string agents_vertices;
+    std::string agents_blocks;
+    std::string agents_edges = "\nedges\n(\n";
+    std::string agents_faces = "\nfaces\n(\n";
+    std::string agents_boundaries = Concat("\theads\n\t{\n"
+            , "\t\ttype wall;\n"
+            , "\t\tfaces\n"
+            , "\t\t(\n");
+
+    for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
+      Double3 pos = agents_position[agent];
+      agents_geometry += Concat("\tsphere\n\t{\n"
+        , "\t\ttype\tsearchableSphere;\n"
+        , "\t\tcentre\t(", pos[0], " ", pos[1], " ", pos[2], ");\n"
+        , "\t\tradius\t", sparam->human_diameter, ";\n"
+        , "\t}\n");
+
+      double v = 0.5773502 * sparam->human_diameter;
+      agents_vertices += Concat(
+        "\t(", -v+pos[0], " ", -v+pos[1], " ", -v+pos[2], ")\n"
+        , "\t(", v+pos[0], " ", -v+pos[1], " ", -v+pos[2], ")\n"
+        , "\t(", v+pos[0], " ", v+pos[1], " ", -v+pos[2], ")\n"
+        , "\t(", -v+pos[0], " ", v+pos[1], " ", -v+pos[2], ")\n"
+        , "\t(", -v+pos[0], " ", -v+pos[1], " ", v+pos[2], ")\n"
+        , "\t(", v+pos[0], " ", -v+pos[1], " ", v+pos[2], ")\n"
+        , "\t(", v+pos[0], " ", v+pos[1], " ", v+pos[2], ")\n"
+        , "\t(", -v+pos[0], " ", v+pos[1], " ", v+pos[2], ")\n");
+
+      agents_blocks += Concat(
+        "\thex (",last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8 +2
+        , " ", last_geom_vertice+agent*8+3, " " , last_geom_vertice+agent*8+4
+        , " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6
+        , " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8
+        , ") (1 1 1) simpleGrading (1 1 1)\n");
+
+      double a = 0.7071067 * sparam->human_diameter;
+      agents_edges += Concat(
+      "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+2
+      , " (", 0+pos[0], " ", -a+pos[1], " ", -a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+4
+      , " (", 0+pos[0], " ", a+pos[1], " ", -a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8
+      , " (", 0+pos[0], " ", a+pos[1], " ", a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6
+      , " (", 0+pos[0], " ", -a+pos[1], " ", a+pos[2], ")\n"
+
+      , "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+4
+      , " (", -a+pos[0], " ", 0+pos[1], " ", -a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+3
+      , " (", a+pos[0], " ", 0+pos[1], " ", -a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7
+      , " (", a+pos[0], " ", 0+pos[1], " ", a+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8
+      , " (", -a+pos[0], " ", 0+pos[1], " ", a+pos[2], ")\n"
+
+      , "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+5
+      , " (", -a+pos[0], " ", -a+pos[1], " ", 0+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+6
+      , " (", a+pos[0], " ", -a+pos[1], " ", 0+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+7
+      , " (", a+pos[0], " ", a+pos[1], " ", 0+pos[2], ")\n"
+      , "\tarc ", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+8
+      , " (", -a+pos[0], " ", a+pos[1], " ", 0+pos[2], ")\n");
+
+      agents_faces += Concat(
+        "\tproject (", last_geom_vertice+agent*8+1, " " , last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+4,") sphere\n"
+
+        , "\tproject (", last_geom_vertice+agent*8+3, " " , last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+2,") sphere\n"
+
+        , "\tproject (", last_geom_vertice+agent*8+2, " " , last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+1,") sphere\n"
+
+        , "\tproject (", last_geom_vertice+agent*8+4, " " , last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+3,") sphere\n"
+
+        , "\tproject (", last_geom_vertice+agent*8+1, " " , last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+2,") sphere\n"
+
+        , "\tproject (", last_geom_vertice+agent*8+5, " " , last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8,") sphere\n"
+      );
+
+      agents_boundaries += Concat(
+        "\t\t\t(", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+4, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+2, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+1, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+3, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+2, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8, ")\n");
+
+    } // end for each agent in sim
+
+    agents_geometry += "};\n"; // end geometry section
+    agents_vertices += ");\n"; // end vertices section
+    agents_blocks += ");\n"; // end blocks section
+    agents_edges += ");\n"; // end edges section
+    agents_faces += ");\n"; // end faces section
+    agents_boundaries += "\t\t);\n\t}\n);\n"; // end boundary section
+
+    geometry_file << head;
+    geometry_file << agents_geometry;
+    geometry_file << vertices << agents_vertices;
+    geometry_file << blocks << agents_blocks;
+    geometry_file << agents_edges;
+    geometry_file << agents_faces;
+    geometry_file << boundaries << agents_boundaries;
     geometry_file << "mergePatchPairs();";
+
     geometry_file.close();
   } // end ExportGeomToFoam
 
