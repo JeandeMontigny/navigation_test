@@ -43,7 +43,6 @@ inline int Simulate(int argc, const char** argv) {
   BuildBus();
   // create OpenFOAM directories and files
   std::string openFoamDir = Concat(param->output_dir_, "/../../openFOAM/");
-  ExportFoamFiles(openFoamDir);
 
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
@@ -62,6 +61,8 @@ inline int Simulate(int argc, const char** argv) {
   //bus population creation
   InitialBusPopulationCreation(&navigation_map);
   std::cout << "population created" << std::endl;
+
+  ExportFoamFiles(openFoamDir);
 
   // Run simulation for number_of_steps timestep
   std::cout << "simulating.." << std::endl;
