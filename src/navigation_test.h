@@ -26,6 +26,7 @@
 #include "a_star.h"
 #include "population_creation.h"
 #include "core/diffusion_grid.h"
+#include "open_foam_export.h"
 
 namespace bdm {
 
