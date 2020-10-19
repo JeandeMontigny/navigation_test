@@ -32,9 +32,6 @@ namespace bdm {
     if (state == State::kHealthy) {
       human->AddBiologyModule(new GetInfectedBehaviour());
     }
-    else {
-      human->AddBiologyModule(new SpreadVirusBehaviour());
-    }
 
     // search for an empty seat
     Double3 dest = GetEmptySeat();
@@ -77,12 +74,11 @@ namespace bdm {
       rm->push_back(human);
     }
     // passenger already in bus
-    // State::kInfected, SpreadVirusBehaviour
+    // State::kInfected
     human = new Human({45, -95, -40});
     human->SetDiameter(sparam->human_diameter);
     human->state_ = State::kInfected;
     human->AddBiologyModule(new Navigation(navigation_map));
-    human->AddBiologyModule(new SpreadVirusBehaviour());
     rm->push_back(human);
 
   } // end BusPopulationCreation

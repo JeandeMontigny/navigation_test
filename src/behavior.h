@@ -121,44 +121,6 @@ private:
 }; // end Navigation
 
 // ---------------------------------------------------------------------------
-struct SpreadVirusBehaviour : public BaseBiologyModule {
-  BDM_STATELESS_BM_HEADER(SpreadVirusBehaviour, BaseBiologyModule, 1);
-
-  SpreadVirusBehaviour() : BaseBiologyModule(gAllEventIds) {}
-
-  void Run(SimObject* so) override {
-    // auto* sim = Simulation::GetActive();
-    // auto* rm = sim->GetResourceManager();
-    // auto* random = sim->GetRandom();
-    // auto* param = sim->GetParam();
-    // auto* sparam = param->GetModuleParam<SimParam>();
-
-    auto* human = bdm_static_cast<Human*>(so);
-    Double3 position = human->GetPosition();
-    double radius = human->GetDiameter()/2;
-    double v[2] = {human->orientation_[0], human->orientation_[1]};
-
-    // recovery time if infected
-    if (human->state_ == State::kInfected) {
-
-    // virus spreading
-    Double3 diffusion_position =
-      {position[0] + v[0]* radius, position[1] + v[1]* radius, position[3] };
-    // TODO: call OpenFOAM for droplets and aerosol spreading
-
-    // breathing spread
-    // no significant production of droplets
-    // low produciton of aerosol and short propagation
-
-    // cough or sneez spread
-    // long distance and high concentration. rarely occurs
-
-  } // end if kInfected
-
-  } // end Run
-}; // end SpreadVirusBehaviour
-
-// ---------------------------------------------------------------------------
 struct GetInfectedBehaviour : public BaseBiologyModule {
   BDM_STATELESS_BM_HEADER(GetInfectedBehaviour, BaseBiologyModule, 1);
 
