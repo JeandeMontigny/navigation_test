@@ -8,7 +8,6 @@
 #include "core/container/math_array.h"
 #include "sim-param.h"
 #include "biodynamo.h"
-#include "population_creation_utils.h"
 
 namespace bdm {
 
@@ -195,13 +194,17 @@ namespace bdm {
     int last_geom_vertice = sim_space->GetNdaughters()*8+7;
 
 
-    // WARNING: check that agent's order is the same.
-    //          if not, don't use methods, and do both list construction
-    //          together here
-    auto agents_position = GetAgentsPositionList();
-
-    // TODO: add agent's mouth position and direction for spreading (inlet)
-    auto agents_direction = GetAgentsDirectionList();
+    std::vector<Double3> agents_position;
+    std::vector<std::vector<double>> agents_direction;
+    std::vector<int> agents_state;
+    // get humans info
+    auto get_agents_lists = [&agents_position, &agents_direction, &agents_state](SimObject* so) {
+      auto* hu = bdm_static_cast<Human*>(so);
+      agents_position.push_back(hu->GetPosition());
+      agents_direction.push_back(hu->orientation_);
+      agents_state.push_back(hu->state_);
+    };
+    rm->ApplyOnAllElements(get_agents_lists);
 
     std::string agents_geometry = "\ngeometry\n{\n";
     std::string agents_vertices;
@@ -215,13 +218,16 @@ namespace bdm {
 
     for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
       Double3 pos = agents_position[agent];
+      auto dir = agents_direction[agent];
+      double radius = sparam->human_diameter/2;
+
       agents_geometry += Concat("\tsphere\n\t{\n"
         , "\t\ttype\tsearchableSphere;\n"
         , "\t\tcentre\t(", pos[0], " ", pos[1], " ", pos[2], ");\n"
-        , "\t\tradius\t", sparam->human_diameter, ";\n"
+        , "\t\tradius\t", radius, ";\n"
         , "\t}\n");
 
-      double v = 0.5773502 * sparam->human_diameter;
+      double v = 0.5773502 * radius;
       agents_vertices += Concat(
         "\t(", -v+pos[0], " ", -v+pos[1], " ", -v+pos[2], ")\n"
         , "\t(", v+pos[0], " ", -v+pos[1], " ", -v+pos[2], ")\n"
@@ -239,7 +245,7 @@ namespace bdm {
         , " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8
         , ") (1 1 1) simpleGrading (1 1 1)\n");
 
-      double a = 0.7071067 * sparam->human_diameter;
+      double a = 0.7071067 * radius;
       agents_edges += Concat(
       "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+2
       , " (", 0+pos[0], " ", -a+pos[1], " ", -a+pos[2], ")\n"
@@ -289,6 +295,11 @@ namespace bdm {
         , "\t\t\t(", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+3, ")\n"
         , "\t\t\t(", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+2, ")\n"
         , "\t\t\t(", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8, ")\n");
+
+        // TODO: add agent's mouth position and direction for spreading (inlet)
+        if (agents_state[agent] == State::kInfected) {
+          double spread_pos[3] = {pos[0] + dir[0]*radius, pos[1] + dir[1]*radius, pos[3]};
+        }
 
     } // end for each agent in sim
 
