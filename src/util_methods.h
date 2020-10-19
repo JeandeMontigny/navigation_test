@@ -8,25 +8,7 @@
 #ifndef UTILS_METHODS_
 #define UTILS_METHODS_
 
-#include "biodynamo.h"
-
 namespace bdm {
-
-// ---------------------------------------------------------------------------
-  inline std::vector<Double3> GetAgentsPositionList() {
-    auto* sim = Simulation::GetActive();
-    auto* rm = sim->GetResourceManager();
-
-    std::vector<Double3> agents_position_list;
-
-    auto get_agents_position_list = [&agents_position_list](const auto* neighbor) {
-      auto* hu = bdm_static_cast<const Cell*>(neighbor);
-      agents_position_list.push_back(hu->GetPosition());
-    };
-    rm->ApplyOnAllElements(get_agents_position_list);
-
-    return agents_position_list;
-  } // end GetAgentsPositionList
 
 // ------------------------------------------------------------------------
   inline float TriangleArea(double x1, double y1, double x2, double y2, double x3, double y3) {
@@ -97,30 +79,6 @@ namespace bdm {
 
     return diffusion_positions;
   } // end GetDiffusionPositions
-
-// ------------------------------------------------------------------------
-//   inline double GetDistance(Double3 dAB) {
-//     return std::sqrt(dAB[0]*dAB[0] + dAB[1]*dAB[1] + dAB[2]*dAB[2]);
-//   } // end GetDistance
-//
-// // ---------------------------------------------------------------------------
-//   inline Double3 GetDifAB(Double3 positionA, Double3 positionB) {
-//     Double3 dAB;
-//     for (int i=0; i<3; ++i) {
-//       dAB[i] = positionB[i] - positionA[i];
-//     }
-//     return dAB;
-//   } // end GetDifAB
-//
-// // ---------------------------------------------------------------------------
-//   inline Double3 GetNormalisedDirection(double distAB, Double3 dAB) {
-//   // normalize the direction
-//     for (int i=0; i<3; ++i) {
-//       dAB[i] /= distAB;
-//     }
-//     return dAB;
-//   } // end GetNormalisedDirection
-//
 
 }
 

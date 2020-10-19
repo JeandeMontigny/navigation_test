@@ -8,12 +8,43 @@
 #ifndef POPULATION_CREATION_UTILS_
 #define POPULATION_CREATION_UTILS_
 
+#include "biodynamo.h"
 #include "human.h"
-#include "behavior.h"
-#include "sim-param.h"
 #include "geom_construct.h"
 
 namespace bdm {
+
+// ---------------------------------------------------------------------------
+  inline std::vector<Double3> GetAgentsPositionList() {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+
+    std::vector<Double3> agents_position_list;
+
+    auto get_agents_position_list = [&agents_position_list](SimObject* so) {
+      auto* hu = bdm_static_cast<Human*>(so);
+      agents_position_list.push_back(hu->GetPosition());
+    };
+    rm->ApplyOnAllElements(get_agents_position_list);
+
+    return agents_position_list;
+  } // end GetAgentsPositionList
+
+// ---------------------------------------------------------------------------
+  inline std::vector<std::vector<double>> GetAgentsDirectionList() {
+    auto* sim = Simulation::GetActive();
+    auto* rm = sim->GetResourceManager();
+
+    std::vector<std::vector<double>> agents_direction_list;
+
+    auto get_agents_direction_list = [&agents_direction_list](SimObject* so) {
+      auto* hu = bdm_static_cast<Human*>(so);
+      agents_direction_list.push_back(hu->orientation_);
+    };
+    rm->ApplyOnAllElements(get_agents_direction_list);
+
+    return agents_direction_list;
+  } // end GetAgentsDirectionList
 
 // ---------------------------------------------------------------------------
   static std::vector<Double3> GetSeatsPositionList() {
