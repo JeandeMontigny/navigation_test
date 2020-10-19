@@ -47,7 +47,9 @@ struct Navigation : public BaseBiologyModule {
 
     // some passengers (x%) leave if sim step == y
     // add destination to bus exit
-    if (sim->GetScheduler()->GetSimulatedSteps() % 2000 == 0
+    if ((sim->GetScheduler()->GetSimulatedSteps() % 800 == 0
+          || sim->GetScheduler()->GetSimulatedSteps() % 1800 == 0
+          || sim->GetScheduler()->GetSimulatedSteps() % 3000 == 0)
         && random->Uniform() < 0.2) {
       human->destinations_list_ =
         AddDestinationToList(human->destinations_list_, navigation_map_,

@@ -71,35 +71,52 @@ inline int Simulate(int argc, const char** argv) {
 
     // passenger pop in at bus entrace position
     // first bus stop
+    // TODO: Navigation is run every time step. check arrival timing
+    if (i == 10) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 20) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 30) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 40) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
     if (i == 50) {
       AddPassenger(State::kHealthy, &navigation_map);
     }
-    if (i == 100) {
+    if (i == 60) {
       AddPassenger(State::kHealthy, &navigation_map);
     }
-    if (i == 150) {
-      AddPassenger(State::kHealthy, &navigation_map);
-    }
-    if (i == 200) {
-      AddPassenger(State::kHealthy, &navigation_map);
-    }
-    if (i == 250) {
-      AddPassenger(State::kHealthy, &navigation_map);
-    }
-    if (i == 300) {
-      AddPassenger(State::kHealthy, &navigation_map);
-    }
-    if (i == 350) {
+    if (i == 70) {
       AddPassenger(State::kHealthy, &navigation_map);
     }
     // second bus stop
-    if (i == 2050) {
+    if (i == 810) {
       AddPassenger(State::kInfected, &navigation_map);
     }
-    if (i == 2100) {
+    if (i == 820) {
       AddPassenger(State::kHealthy, &navigation_map);
     }
-    if (i == 2150) {
+    if (i == 830) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    // third bus stop
+    if (i == 1810) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 1820) {
+      AddPassenger(State::kInfected, &navigation_map);
+    }
+    if (i == 1830) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 1840) {
+      AddPassenger(State::kHealthy, &navigation_map);
+    }
+    if (i == 1850) {
       AddPassenger(State::kHealthy, &navigation_map);
     }
   }

@@ -1,4 +1,4 @@
-# 3600 = 30min
+# 3600 ~= 6 min if 0.0000277
 number_of_steps = 3600
 human_diameter = 25
 map_pixel_size = 4
@@ -6,8 +6,8 @@ map_pixel_size = 4
 # ----------------------------------------------------------------------------
 [simulation]
 # 1=1h; 0.000277 ~= 1s
-# 0.00014 ~= 0.5s
-time_step = 0.00014
+# 0.0000277 ~= 0.1s
+time_step = 0.0000277
 bound_space = true
 min_bound = -550
 max_bound = 550
