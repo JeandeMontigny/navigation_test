@@ -211,10 +211,18 @@ namespace bdm {
     std::string agents_blocks;
     std::string agents_edges = "\nedges\n(\n";
     std::string agents_faces = "\nfaces\n(\n";
-    std::string agents_boundaries = Concat("\theads\n\t{\n"
-            , "\t\ttype wall;\n"
-            , "\t\tfaces\n"
-            , "\t\t(\n");
+    std::string agents_boundaries = Concat(
+      "\theads\n\t{\n"
+      , "\t\ttype wall;\n"
+      , "\t\tfaces\n"
+      , "\t\t(\n");
+
+    int number_of_inlets = 0;
+    std::string inlet_boundaries = Concat(
+      "\tinlets\n\t{\n"
+      , "\t\ttype patch;\n"
+      , "\t\tfaces\n"
+      , "\t\t(\n");
 
     for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
       Double3 pos = agents_position[agent];
@@ -239,67 +247,228 @@ namespace bdm {
         , "\t(", -v+pos[0], " ", v+pos[1], " ", v+pos[2], ")\n");
 
       agents_blocks += Concat(
-        "\thex (",last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8 +2
-        , " ", last_geom_vertice+agent*8+3, " " , last_geom_vertice+agent*8+4
-        , " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6
-        , " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8
+        "\thex (",last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4 +2
+        , " ", last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+4
+        , " ", last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6
+        , " ", last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8
         , ") (1 1 1) simpleGrading (1 1 1)\n");
 
       double a = 0.7071067 * radius;
       agents_edges += Concat(
-      "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+2
+      "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+2
       , " (", 0+pos[0], " ", -a+pos[1], " ", -a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+4
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+4
       , " (", 0+pos[0], " ", a+pos[1], " ", -a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+8
       , " (", 0+pos[0], " ", a+pos[1], " ", a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+6
       , " (", 0+pos[0], " ", -a+pos[1], " ", a+pos[2], ")\n"
 
-      , "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+4
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+4
       , " (", -a+pos[0], " ", 0+pos[1], " ", -a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+3
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+2, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+3
       , " (", a+pos[0], " ", 0+pos[1], " ", -a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+7
       , " (", a+pos[0], " ", 0+pos[1], " ", a+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+8
       , " (", -a+pos[0], " ", 0+pos[1], " ", a+pos[2], ")\n"
 
-      , "\tarc ", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+5
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+5
       , " (", -a+pos[0], " ", -a+pos[1], " ", 0+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+6
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+2, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+6
       , " (", a+pos[0], " ", -a+pos[1], " ", 0+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+7
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+7
       , " (", a+pos[0], " ", a+pos[1], " ", 0+pos[2], ")\n"
-      , "\tarc ", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+8
+      , "\tarc ", last_geom_vertice+agent*8+number_of_inlets*4+4, " "
+      , last_geom_vertice+agent*8+number_of_inlets*4+8
       , " (", -a+pos[0], " ", a+pos[1], " ", 0+pos[2], ")\n");
 
       agents_faces += Concat(
-        "\tproject (", last_geom_vertice+agent*8+1, " " , last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+4,") sphere\n"
+        "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+4,") sphere\n"
 
-        , "\tproject (", last_geom_vertice+agent*8+3, " " , last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+2,") sphere\n"
+        , "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+2,") sphere\n"
 
-        , "\tproject (", last_geom_vertice+agent*8+2, " " , last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+1,") sphere\n"
+        , "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+2, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+1,") sphere\n"
 
-        , "\tproject (", last_geom_vertice+agent*8+4, " " , last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+3,") sphere\n"
+        , "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+4, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+3,") sphere\n"
 
-        , "\tproject (", last_geom_vertice+agent*8+1, " " , last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+2,") sphere\n"
+        , "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+4, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+2,") sphere\n"
 
-        , "\tproject (", last_geom_vertice+agent*8+5, " " , last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8,") sphere\n"
+        , "\tproject (", last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8,") sphere\n"
       );
 
       agents_boundaries += Concat(
-        "\t\t\t(", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+4, ")\n"
-        , "\t\t\t(", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+2, ")\n"
-        , "\t\t\t(", last_geom_vertice+agent*8+2, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+1, ")\n"
-        , "\t\t\t(", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+8, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+3, ")\n"
-        , "\t\t\t(", last_geom_vertice+agent*8+1, " ", last_geom_vertice+agent*8+4, " ", last_geom_vertice+agent*8+3, " ", last_geom_vertice+agent*8+2, ")\n"
-        , "\t\t\t(", last_geom_vertice+agent*8+5, " ", last_geom_vertice+agent*8+6, " ", last_geom_vertice+agent*8+7, " ", last_geom_vertice+agent*8+8, ")\n");
+        "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+4, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+2, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+2, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+1, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+4, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+3, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+1, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+4, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+3, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+2, ")\n"
+        , "\t\t\t(", last_geom_vertice+agent*8+number_of_inlets*4+5, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+6, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+7, " "
+        , last_geom_vertice+agent*8+number_of_inlets*4+8, ")\n");
 
-        // TODO: add agent's mouth position and direction for spreading (inlet)
+        // add agent's mouth position and direction for spreading (inlet)
+        // TODO:  only for infected? or normal breathing of health population as well?
         if (agents_state[agent] == State::kInfected) {
-          double spread_pos[3] = {pos[0] + dir[0]*radius, pos[1] + dir[1]*radius, pos[3]};
-        }
+          Double3 spread_pos = {pos[0] + dir[0]*radius, pos[1] + dir[1]*radius, pos[2]};
+
+          // from spread_pos, has to create a vertical square, perpendicular to the sphere
+          // A and B = 90° of dir fom spread_pos, -/+ 1 in z
+          double theta = DegToRad(90);
+          double cs = std::cos(theta);
+          double sn = std::sin(theta);
+          double w_p[2] = {dir[0]*cs - dir[1]*sn, dir[0]*sn + dir[1]*cs};
+          Double3 spread_verta =
+            { spread_pos[0] + w_p[0], spread_pos[1] + w_p[1], spread_pos[2]-1};
+          Double3 spread_vertb =
+            { spread_pos[0] + w_p[0], spread_pos[1] + w_p[1], spread_pos[2]+1};
+
+          // C and D = -90° of dir fom spread_pos, -/+ 1 in z
+          theta = DegToRad(-90);
+          cs = std::cos(theta);
+          sn = std::sin(theta);
+          double w_m[2] = {dir[0]*cs - dir[1]*sn, dir[0]*sn + dir[1]*cs};
+          Double3 spread_vertc =
+          { spread_pos[0] + w_m[0], spread_pos[1] + w_m[1], spread_pos[2]-1};
+          Double3 spread_vertd =
+          { spread_pos[0] + w_m[0], spread_pos[1] + w_m[1], spread_pos[2]+1};
+
+          // sort vertices a, b, c, d
+          // ---
+          // ++-
+          // +++
+          // --+
+          Double3 spread_vert_unsorted[4] = {spread_verta, spread_vertb, spread_vertc, spread_vertd};
+          Double3 spread_vert_sorted[4];
+          double sp_vert_x_max = min_b; double sp_vert_x_min = max_b;
+          double sp_vert_y_max = min_b; double sp_vert_y_min = max_b;
+          double sp_vert_z_max = min_b; double sp_vert_z_min = max_b;
+
+          // get min max for x, y and z
+          for (int sp_vert_i = 0; sp_vert_i < 4; sp_vert_i++) {
+            if (spread_vert_unsorted[sp_vert_i][0] > sp_vert_x_max) {
+              sp_vert_x_max = spread_vert_unsorted[sp_vert_i][0];
+            }
+            if (spread_vert_unsorted[sp_vert_i][0] < sp_vert_x_min) {
+              sp_vert_x_min = spread_vert_unsorted[sp_vert_i][0];
+            }
+            if (spread_vert_unsorted[sp_vert_i][1] > sp_vert_y_max) {
+              sp_vert_y_max = spread_vert_unsorted[sp_vert_i][1];
+            }
+            if (spread_vert_unsorted[sp_vert_i][1] < sp_vert_y_min) {
+              sp_vert_y_min = spread_vert_unsorted[sp_vert_i][1];
+            }
+            if (spread_vert_unsorted[sp_vert_i][2] > sp_vert_z_max) {
+              sp_vert_z_max = spread_vert_unsorted[sp_vert_i][2];
+            }
+            if (spread_vert_unsorted[sp_vert_i][2] < sp_vert_z_min) {
+              sp_vert_z_min = spread_vert_unsorted[sp_vert_i][2];
+            }
+          }
+          // sort
+          for (int sp_vert_i = 0; sp_vert_i < 4; sp_vert_i++) {
+            if (spread_vert_unsorted[sp_vert_i][0] == sp_vert_x_min
+              && spread_vert_unsorted[sp_vert_i][1] == sp_vert_y_min
+              && spread_vert_unsorted[sp_vert_i][2] == sp_vert_z_min) {
+              spread_vert_sorted[0] = spread_vert_unsorted[sp_vert_i];
+            }
+            if (spread_vert_unsorted[sp_vert_i][0] == sp_vert_x_max
+              && spread_vert_unsorted[sp_vert_i][1] == sp_vert_y_min
+              && spread_vert_unsorted[sp_vert_i][2] == sp_vert_z_min) {
+              spread_vert_sorted[1] = spread_vert_unsorted[sp_vert_i];
+            }
+            if (spread_vert_unsorted[sp_vert_i][0] == sp_vert_x_max
+              && spread_vert_unsorted[sp_vert_i][1] == sp_vert_y_max
+              && spread_vert_unsorted[sp_vert_i][2] == sp_vert_z_max) {
+              spread_vert_sorted[2] = spread_vert_unsorted[sp_vert_i];
+            }
+            if (spread_vert_unsorted[sp_vert_i][0] == sp_vert_x_min
+              && spread_vert_unsorted[sp_vert_i][1] == sp_vert_y_max
+              && spread_vert_unsorted[sp_vert_i][2] == sp_vert_z_max) {
+              spread_vert_sorted[3] = spread_vert_unsorted[sp_vert_i];
+            }
+          }
+
+          agents_vertices += Concat(
+            "\t(", spread_vert_sorted[0][0], " ", spread_vert_sorted[0][1]
+            , " ", spread_vert_sorted[0][2], ")\n"
+            , "\t(", spread_vert_sorted[1][0], " ", spread_vert_sorted[1][1]
+            , " ", spread_vert_sorted[1][2], ")\n"
+            , "\t(", spread_vert_sorted[2][0], " ", spread_vert_sorted[2][1]
+            , " ", spread_vert_sorted[2][2], ")\n"
+            , "\t(", spread_vert_sorted[3][0], " ", spread_vert_sorted[3][1]
+            , " ", spread_vert_sorted[3][2], ")\n");
+
+            // WARNING: plane instead of cube. may trigger issues later
+            //          may have to create cube, with one face as inlate
+            agents_blocks += Concat(
+              "\thex (",last_geom_vertice+(agent+1)*8+number_of_inlets*4+1, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4 +2, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4+3, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4+4, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4+1, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4 +2 , " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4+3, " "
+              , last_geom_vertice+(agent+1)*8+number_of_inlets*4+4
+              , ") (1 1 1) simpleGrading (1 1 1)\n");
+
+          inlet_boundaries += Concat(
+            "\t\t\t(", last_geom_vertice+(agent+1)*8+number_of_inlets*4+1
+            , " ",  last_geom_vertice+(agent+1)*8+number_of_inlets*4+2
+            , " ",  last_geom_vertice+(agent+1)*8+number_of_inlets*4+3
+            , " ",  last_geom_vertice+(agent+1)*8+number_of_inlets*4+4, ")\n");
+
+          number_of_inlets++;
+        } // if kInfected
 
     } // end for each agent in sim
 
@@ -308,7 +477,9 @@ namespace bdm {
     agents_blocks += ");\n"; // end blocks section
     agents_edges += ");\n"; // end edges section
     agents_faces += ");\n"; // end faces section
-    agents_boundaries += "\t\t);\n\t}\n);\n"; // end boundary section
+    agents_boundaries += "\t\t);\n\t}\n"; // end agents boudaries (not section)
+
+    inlet_boundaries += "\t\t);\n\t}\n);\n"; // end boundary section
 
     geometry_file << head;
     geometry_file << agents_geometry;
@@ -316,7 +487,7 @@ namespace bdm {
     geometry_file << blocks << agents_blocks;
     geometry_file << agents_edges;
     geometry_file << agents_faces;
-    geometry_file << boundaries << agents_boundaries;
+    geometry_file << boundaries << agents_boundaries << inlet_boundaries;
     geometry_file << "mergePatchPairs();";
 
     geometry_file.close();
