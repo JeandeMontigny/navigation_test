@@ -144,7 +144,7 @@ struct GetInfectedBehaviour : public BaseBiologyModule {
     if (human->state_ == State::kHealthy) {
       double concentration = 0;
 
-      //TODO: get droplet and aerosol concentrations from OpenFOAM
+      //TODO: get droplet and aerosol concentrations from OpenLB
 
       if (concentration > 1e-6) {
         human->state_ = State::kIncubation;

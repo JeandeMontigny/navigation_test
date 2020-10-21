@@ -26,7 +26,7 @@
 #include "a_star.h"
 #include "population_creation.h"
 #include "core/diffusion_grid.h"
-#include "open_foam_export.h"
+#include "openlb_export.h"
 
 namespace bdm {
 
@@ -38,17 +38,18 @@ inline int Simulate(int argc, const char** argv) {
   auto* param = simulation.GetParam();
   auto* sparam = param->GetModuleParam<SimParam>();
   simulation.GetRandom()->SetSeed(2975); // rand() % 10000
+  // choose if print navigation map
+  bool print_navigation_map = false;
+  // create OpenLB directories and files
+  std::string openlbDir = Concat(param->output_dir_, "/../../openlb/");
 
   //construct geom
   BuildBus();
-  // create OpenFOAM directories and files
-  std::string openFoamDir = Concat(param->output_dir_, "/../../openFOAM/");
 
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
 
   // print navigation_map
-  bool print_navigation_map = false;
   if (print_navigation_map) {
     for (size_t map_x = 0; map_x < navigation_map.size(); map_x++) {
       for (size_t map_y = 0; map_y < navigation_map[0].size(); map_y++) {
@@ -62,7 +63,7 @@ inline int Simulate(int argc, const char** argv) {
   InitialBusPopulationCreation(&navigation_map);
   std::cout << "population created" << std::endl;
 
-  ExportFoamFiles(openFoamDir);
+  ExportOpenlbFiles(openlbDir);
 
   // Run simulation for number_of_steps timestep
   std::cout << "simulating.." << std::endl;
