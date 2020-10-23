@@ -17,8 +17,8 @@ namespace bdm {
     auto* rm = sim->GetResourceManager();
     auto* param = sim->GetParam();
     auto* sparam = param->GetModuleParam<SimParam>();
-    double min_b = param->min_bound_;
-    double max_b = param->max_bound_;
+    // double min_b = param->min_bound_;
+    // double max_b = param->max_bound_;
 
     auto* sim_space = gGeoManager->GetVolume("sim_space");
 
@@ -36,9 +36,6 @@ namespace bdm {
       auto node = sim_space->GetNode(i);
       TGeoBBox *box = (TGeoBBox*)node->GetVolume()->GetShape();
 
-      double min_x = max_b; double max_x = min_b;
-      double min_y = max_b; double max_y = min_b;
-      double min_z = max_b; double max_z = min_b;
       // copies the box vertices in local coordinates
       box->SetBoxPoints(&vert[0]);
       node->GetName(); // name of this box
@@ -49,21 +46,34 @@ namespace bdm {
       } // end for all vertices points
 
       // per geom object: 8 vertices forming 12 triangles
+      // faces orientation (facing outside of geom object)
+      int face_orient_list[12][3] = {
+        {0,0,-1}, {0,0,-1}, {0,-1,0}, {0,-1,0}, {-1,0,0}, {-1,0,0},
+        {1,0,0}, {1,0,0}, {0,1,0}, {0,1,0}, {0,0,1}, {0,0,1} };
+      // each triangle from the 8 vertices
+      int vert_tri_list[12][3] = {
+        {0,1,2}, {0,2,3}, {4,5,1}, {4,1,0}, {4,0,3}, {4,3,7},
+        {3,2,6}, {3,6,7}, {1,5,6}, {1,6,2}, {7,6,5}, {7,5,4} };
 
-      // TODO: get facet orientation (facing outside of geom object)
-      //       get each triangle from the 8 vertices
-
-      //       brute froce: hard coding 12 triangles
-      //       or loop to construct the 12 triangles
-      ast_file << "  facet normal\n"
-               << orientation << "\n"
-               << "    outer loop\n"
-               << "      vertex " << vertex << "\n"
-               << "      vertex " << vertex << "\n"
-               << "      vertex " << vertex << "\n"
-               << "    endloop\n"
-               << "  endfacet\n";
-
+      // export the 12 triangles vertex coordinates and orientation
+      for (int tri = 0; tri < 12; tri ++) {
+        ast_file << "  facet normal "
+                 << face_orient_list[tri][0] << " "
+                 << face_orient_list[tri][1] << " "
+                 << face_orient_list[tri][2] << "\n"
+                 << "    outer loop\n"
+                 << "      vertex " << vert_master[vert_tri_list[tri][0]][0]
+                 << " " << vert_master[vert_tri_list[tri][0]][1]
+                 << " " << vert_master[vert_tri_list[tri][0]][2] << "\n"
+                 << "      vertex " << vert_master[vert_tri_list[tri][1]][0]
+                 << " " << vert_master[vert_tri_list[tri][1]][1]
+                 << " " << vert_master[vert_tri_list[tri][1]][2] << "\n"
+                 << "      vertex " << vert_master[vert_tri_list[tri][2]][0]
+                 << " " << vert_master[vert_tri_list[tri][2]][1]
+                 << " " << vert_master[vert_tri_list[tri][2]][2] << "\n"
+                 << "    endloop\n"
+                 << "  endfacet\n";
+      }
     } // end for node in sim_space
 
     // -------- Agents -------- //
@@ -88,11 +98,11 @@ namespace bdm {
       // TODO: create shpere with FreeCAD and have a look how it is created as ast file
 
       ast_file << "  facet normal\n"
-               << orientation << "\n"
+               // << orientation << "\n"
                << "    outer loop\n"
-               << "      vertex " << vertex << "\n"
-               << "      vertex " << vertex << "\n"
-               << "      vertex " << vertex << "\n"
+               // << "      vertex " << vertex << "\n"
+               // << "      vertex " << vertex << "\n"
+               // << "      vertex " << vertex << "\n"
                << "    endloop\n"
                << "  endfacet\n";
 
