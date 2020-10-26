@@ -17,8 +17,7 @@ namespace bdm {
 enum State { kHealthy, kIncubation, kInfected, kRecovered };
 
 class Human : public Cell {
-  BDM_SIM_OBJECT_HEADER(Human, Cell, 1, state_, incubation_counter_,
-                        recovery_counter_, destinations_list_, path_);
+  BDM_SIM_OBJECT_HEADER(Human, Cell, 1);
 
  public:
   Human() {}
