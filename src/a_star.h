@@ -8,7 +8,6 @@
 #ifndef A_STAR_H_
 #define A_STAR_H_
 
-#include <bits/stdc++.h>
 #include "navigation_util.h"
 
 namespace bdm {

@@ -10,7 +10,6 @@
 
 #include "core/sim_object/cell.h"
 #include "core/biology_module/biology_module.h"
-#include "a_star.h"
 
 namespace bdm {
 
