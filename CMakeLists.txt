@@ -15,6 +15,9 @@ cmake_minimum_required(VERSION 3.2.0)
 
 project(navigation_test)
 
+include_directories(openlb/openLB/src/)
+link_directories(openlb/openLB/build/precompiled/lib/)
+
 find_package(BioDynaMo REQUIRED)
 include(${BDM_USE_FILE})
 include_directories("src")
@@ -25,4 +28,4 @@ file(GLOB_RECURSE SOURCES src/*.cc)
 bdm_add_executable(navigation_test
                    HEADERS ${HEADERS}
                    SOURCES ${SOURCES}
-                   LIBRARIES ${BDM_REQUIRED_LIBRARIES})
+                   LIBRARIES ${BDM_REQUIRED_LIBRARIES} libolb.a libz.a)
