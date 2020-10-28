@@ -63,7 +63,7 @@ inline int Simulate(int argc, const char** argv) {
   InitialBusPopulationCreation(&navigation_map);
   std::cout << "population created" << std::endl;
 
-  ExportOpenlbFiles(openlbDir);
+  ExportOpenlbFiles(openlbDir, "stl");
 
   // Run simulation for number_of_steps timestep
   std::cout << "simulating.." << std::endl;
