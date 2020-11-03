@@ -64,7 +64,7 @@ inline int Simulate(int argc, const char** argv) {
   InitialBusPopulationCreation(&navigation_map);
   std::cout << "population created" << std::endl;
 
-  ExportOpenlbFiles(openlbDir);
+  ExportOpenlbFiles(openlbDir, "stl");
 
   int o_argc; char* o_argv[1];
   openlb_sim::main(o_argc, o_argv);
