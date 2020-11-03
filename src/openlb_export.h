@@ -272,6 +272,11 @@ namespace bdm {
 
 // ---------------------------------------------------------------------------
   inline void ExportOpenlbFiles(std::string openlbDir, std::string format) {
+    // create openLB directory
+    if (!std::system(Concat("mkdir ", openlbDir).c_str())) {
+      std::cout << "openLB directory created" << std::endl;
+    }
+
     // export ROOT geometry to ascii StL format (.ast)
     if (format == "ast") {
       ExportGeomToAst(openlbDir);
