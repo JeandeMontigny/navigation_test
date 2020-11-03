@@ -45,7 +45,7 @@ typedef double T;
 
 // ---------------------------------------------------------------------------
 // Parameters for the simulation setup
-const int N = 3;                 // resolution of the model, for RLB N>=5, others N>=2, but N>=5 recommended
+const int N = 1;                 // resolution of the model, for RLB N>=5, others N>=2, but N>=5 recommended
 const int M = 1;                 // time discretization refinement
 const int inflowProfileMode = 0; // block profile (mode=0), power profile (mode=1)
 const T maxPhysT = 5.;         // max. simulation time in s, SI unit
@@ -108,7 +108,8 @@ public:
 };
 
 // ---------------------------------------------------------------------------
-void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter, IndicatorF3D<T>& indicator, SuperGeometry3D<T>& superGeometry ) {
+void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
+  IndicatorF3D<T>& indicator, SuperGeometry3D<T>& superGeometry ) {
 
   //TODO: use StL file
   //      also need spread_pos and vectors list
@@ -116,54 +117,57 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter, IndicatorF3D
   OstreamManager clout( std::cout,"prepareGeometry" );
   clout << "Prepare Geometry ..." << std::endl;
 
+  STLreader<T> stlReader( "./output/openlb/bus.stl",converter.getConversionFactorLength() );
+  IndicatorLayer3D<T> extendedDomain( stlReader,converter.getConversionFactorLength() );
+
   // Sets material number for fluid and boundary
-  superGeometry.rename( 0,2,indicator );
-
-  Vector<T,3> origin( T(),
-                      5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
-                      5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
-
-  Vector<T,3> extend( 4.*converter.getCharPhysLength()+5*converter.getConversionFactorLength(),
-                      5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
-                      5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
-
-  IndicatorCylinder3D<T> inletCylinder( extend, origin, converter.getCharPhysLength() );
-  superGeometry.rename( 2,1,inletCylinder );
-
-
-  origin[0]=4.*converter.getCharPhysLength();
-  origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  extend[0]=54.*converter.getCharPhysLength();
-  extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  IndicatorCylinder3D<T> injectionTube( extend, origin, 5.5*converter.getCharPhysLength() );
-  superGeometry.rename( 2,1,injectionTube );
-
-  origin[0]=converter.getConversionFactorLength();
-  origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  extend[0]=T();
-  extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  IndicatorCylinder3D<T> cylinderIN( extend, origin, converter.getCharPhysLength() );
-  superGeometry.rename( 1,3,cylinderIN );
-
-
-  origin[0]=54.*converter.getCharPhysLength()-converter.getConversionFactorLength();
-  origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  extend[0]=54.*converter.getCharPhysLength();
-  extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-
-  IndicatorCylinder3D<T> cylinderOUT( extend, origin, 5.5*converter.getCharPhysLength() );
-  superGeometry.rename( 1,4,cylinderOUT );
+  // superGeometry.rename( 0,2,indicator );
+  //
+  // Vector<T,3> origin( T(),
+  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
+  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
+  //
+  // Vector<T,3> extend( 4.*converter.getCharPhysLength()+5*converter.getConversionFactorLength(),
+  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
+  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
+  //
+  // IndicatorCylinder3D<T> inletCylinder( extend, origin, converter.getCharPhysLength() );
+  // superGeometry.rename( 2,1,inletCylinder );
+  //
+  //
+  // origin[0]=4.*converter.getCharPhysLength();
+  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // extend[0]=54.*converter.getCharPhysLength();
+  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // IndicatorCylinder3D<T> injectionTube( extend, origin, 5.5*converter.getCharPhysLength() );
+  // superGeometry.rename( 2,1,injectionTube );
+  //
+  // origin[0]=converter.getConversionFactorLength();
+  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // extend[0]=T();
+  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // IndicatorCylinder3D<T> cylinderIN( extend, origin, converter.getCharPhysLength() );
+  // superGeometry.rename( 1,3,cylinderIN );
+  //
+  //
+  // origin[0]=54.*converter.getCharPhysLength()-converter.getConversionFactorLength();
+  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // extend[0]=54.*converter.getCharPhysLength();
+  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
+  //
+  // IndicatorCylinder3D<T> cylinderOUT( extend, origin, 5.5*converter.getCharPhysLength() );
+  // superGeometry.rename( 1,4,cylinderOUT );
 
   // Removes all not needed boundary voxels outside the surface
   superGeometry.clean();
@@ -210,7 +214,8 @@ void prepareLattice( SuperLattice3D<T,DESCRIPTOR>& sLattice,
 
 // ---------------------------------------------------------------------------
 void setBoundaryValues( UnitConverter<T,DESCRIPTOR> const&converter,
-                        SuperLattice3D<T,DESCRIPTOR>& lattice, SuperGeometry3D<T>& superGeometry, int iT ) {
+                        SuperLattice3D<T,DESCRIPTOR>& lattice,
+                        SuperGeometry3D<T>& superGeometry, int iT ) {
 
   OstreamManager clout( std::cout,"setBoundaryValues" );
 
@@ -278,8 +283,6 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
 
 // ---------------------------------------------------------------------------
 int main( int argc, char* argv[] ) {
-
-  std::cout << "entered openlb main" << std::endl;
 
   // === 1st Step: Initialization ===
   olbInit( &argc, &argv );
