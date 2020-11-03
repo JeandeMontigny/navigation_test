@@ -27,6 +27,7 @@
 #include "population_creation.h"
 #include "core/diffusion_grid.h"
 #include "openlb_export.h"
+#include "openlb_sim.h"
 
 namespace bdm {
 
@@ -64,6 +65,11 @@ inline int Simulate(int argc, const char** argv) {
   std::cout << "population created" << std::endl;
 
   ExportOpenlbFiles(openlbDir);
+
+  int o_argc; char* o_argv[1];
+  openlb_sim::main(o_argc, o_argv);
+
+  return 1;
 
   // Run simulation for number_of_steps timestep
   std::cout << "simulating.." << std::endl;
