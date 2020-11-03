@@ -42,7 +42,7 @@ inline int Simulate(int argc, const char** argv) {
   // choose if print navigation map
   bool print_navigation_map = false;
   // create OpenLB directories and files
-  std::string openlbDir = Concat(param->output_dir_, "/../../openlb/");
+  std::string openlbDir = Concat(param->output_dir_, "/openlb/");
 
   //construct geom
   BuildBus();
