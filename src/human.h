@@ -34,6 +34,7 @@ class Human : public Cell {
   std::vector<std::vector<double>> path_;
   /// store the agent's orientation. by default, follow bus orientation
   std::vector<double> orientation_ = {-1,0};
+  double virus_concentration_ = 0;
 };
 
 }  // namespace bdm
