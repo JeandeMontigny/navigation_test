@@ -18,6 +18,9 @@
 #include <cmath>
 #include <iostream>
 #include <fstream>
+#include "biodynamo.h"
+#include "human.h"
+#include "sim-param.h"
 
 namespace openlb_sim {
 
@@ -109,63 +112,115 @@ public:
 void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
   IndicatorF3D<T>& indicator, SuperGeometry3D<T>& superGeometry ) {
 
-  //TODO: use StL file
-  //      also need spread_pos and vectors list
-
   OstreamManager clout( std::cout,"prepareGeometry" );
   clout << "Prepare Geometry ..." << std::endl;
 
-  STLreader<T> stlReader( "./output/openlb/bus.stl",converter.getConversionFactorLength() );
-  IndicatorLayer3D<T> extendedDomain( stlReader,converter.getConversionFactorLength() );
+  STLreader<T> stlReader( "./output/openlb/bus.stl",
+    converter.getConversionFactorLength() );
+  IndicatorLayer3D<T> extendedDomain( stlReader,
+    converter.getConversionFactorLength() );
 
-  // Sets material number for fluid and boundary
-  // superGeometry.rename( 0,2,indicator );
-  //
-  // Vector<T,3> origin( T(),
-  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
-  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
-  //
-  // Vector<T,3> extend( 4.*converter.getCharPhysLength()+5*converter.getConversionFactorLength(),
-  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength(),
-  //                     5.5*converter.getCharPhysLength()+converter.getConversionFactorLength() );
-  //
-  // IndicatorCylinder3D<T> inletCylinder( extend, origin, converter.getCharPhysLength() );
-  // superGeometry.rename( 2,1,inletCylinder );
-  //
-  //
-  // origin[0]=4.*converter.getCharPhysLength();
-  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // extend[0]=54.*converter.getCharPhysLength();
-  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // IndicatorCylinder3D<T> injectionTube( extend, origin, 5.5*converter.getCharPhysLength() );
-  // superGeometry.rename( 2,1,injectionTube );
-  //
-  // origin[0]=converter.getConversionFactorLength();
-  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // extend[0]=T();
-  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // IndicatorCylinder3D<T> cylinderIN( extend, origin, converter.getCharPhysLength() );
-  // superGeometry.rename( 1,3,cylinderIN );
-  //
-  //
-  // origin[0]=54.*converter.getCharPhysLength()-converter.getConversionFactorLength();
-  // origin[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // origin[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // extend[0]=54.*converter.getCharPhysLength();
-  // extend[1]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  // extend[2]=5.5*converter.getCharPhysLength()+converter.getConversionFactorLength();
-  //
-  // IndicatorCylinder3D<T> cylinderOUT( extend, origin, 5.5*converter.getCharPhysLength() );
-  // superGeometry.rename( 1,4,cylinderOUT );
+  auto* sim = bdm::Simulation::GetActive();
+  auto* rm = sim->GetResourceManager();
+  auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
+
+  // -------- for each agents -------- //
+  double radius = sparam->human_diameter/2;
+  std::vector<bdm::Double3> agents_position;
+  std::vector<std::vector<double>> agents_direction;
+  std::vector<int> agents_state;
+  // get humans info
+  auto get_agents_lists = [&agents_position, &agents_direction,
+    &agents_state](bdm::SimObject* so) {
+    auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
+    agents_position.push_back(hu->GetPosition());
+    agents_direction.push_back(hu->orientation_);
+    agents_state.push_back(hu->state_);
+  };
+  rm->ApplyOnAllElements(get_agents_lists);
+
+  for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
+    // NOTE: spread only for infected agents
+    if (agents_state[agent] == bdm::State::kInfected) {
+      bdm::Double3 pos = agents_position[agent];
+      auto dir = agents_direction[agent];
+
+      bdm::Double3 spread_pos = {pos[0] + dir[0]*radius,
+                                 pos[1] + dir[1]*radius,
+                                 pos[2] };
+      // -------- create inlets -------- //
+      // Sets material number for fluid and boundary
+      superGeometry.rename( 0,2,indicator );
+
+      Vector<T,3> origin( T(),
+                         5.5 * converter.getCharPhysLength()
+                           + converter.getConversionFactorLength(),
+                         5.5 * converter.getCharPhysLength()
+                           + converter.getConversionFactorLength() );
+
+      Vector<T,3> extend( 4.0 * converter.getCharPhysLength()
+                           + 5*converter.getConversionFactorLength(),
+                         5.5 * converter.getCharPhysLength()
+                           + converter.getConversionFactorLength(),
+                         5.5 * converter.getCharPhysLength()
+                           + converter.getConversionFactorLength() );
+
+      IndicatorCylinder3D<T> inletCylinder( extend, origin,
+        converter.getCharPhysLength() );
+      superGeometry.rename( 2, 1, inletCylinder );
+
+
+      origin[0 ] = 4.*converter.getCharPhysLength();
+      origin[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      origin[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      extend[0] = 54. * converter.getCharPhysLength();
+      extend[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      extend[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      IndicatorCylinder3D<T> injectionTube( extend, origin,
+        5.5 * converter.getCharPhysLength() );
+      superGeometry.rename( 2,1,injectionTube );
+
+      origin[0] = converter.getConversionFactorLength();
+      origin[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      origin[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      extend[0] = T();
+      extend[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      extend[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      IndicatorCylinder3D<T> cylinderIN( extend, origin,
+       converter.getCharPhysLength() );
+      superGeometry.rename( 1,3,cylinderIN );
+
+      origin[0] = 54. * converter.getCharPhysLength()
+        - converter.getConversionFactorLength();
+      origin[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      origin[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      extend[0] = 54. * converter.getCharPhysLength();
+      extend[1] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+      extend[2] = 5.5 * converter.getCharPhysLength()
+        + converter.getConversionFactorLength();
+
+      IndicatorCylinder3D<T> cylinderOUT( extend, origin,
+        5.5*converter.getCharPhysLength() );
+      superGeometry.rename( 1,4,cylinderOUT );
+
+    } // if agent is infected
+  } // for each agent in sim
 
   // Removes all not needed boundary voxels outside the surface
   superGeometry.clean();
@@ -272,11 +327,11 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
   }
 
   // Writes output on the console
-  if ( iT%converter.getLatticeTime( maxPhysT/200. )==0 ) {
-    timer.update( iT );
-    timer.printStep();
-    sLattice.getStatistics().print( iT, converter.getPhysTime( iT ) );
-  }
+  // if ( iT%converter.getLatticeTime( maxPhysT/200. )==0 ) {
+  //   timer.update( iT );
+  //   timer.printStep();
+  //   sLattice.getStatistics().print( iT, converter.getPhysTime( iT ) );
+  // }
 }
 
 // ---------------------------------------------------------------------------
@@ -368,11 +423,29 @@ int main( int argc, char* argv[] ) {
 
   timer.stop();
   timer.printSummary();
+
+  // -------- biodynamo -------- //
+  // update virus concentration at each agent (spread) position
+  auto* sim = bdm::Simulation::GetActive();
+  auto* rm = sim->GetResourceManager();
+  auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
+  double radius = sparam->human_diameter/2;
+  auto update_agents_virus_concentration = [](bdm::SimObject* so) {
+    auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
+    if (hu->state_ == bdm::State::kHealthy) {
+      bdm::Double3 pos = hu->GetPosition();
+      bdm::Double3 dir = hu->orientation_;
+      bdm::Double3 spread_pos = {pos[0] + dir[0]*radius,
+                                 pos[1] + dir[1]*radius,
+                                 pos[2] };
+      hu->virus_concentration_ = GetVirusConcentration(spread_pos);
+    } // end if kHealthy
+  }; // end for each agents in sim
+  rm->ApplyOnAllElements(update_agents_virus_concentration);
+
   delete bulkDynamics;
 
-  // TODO: return particle concentration map (or just at agents position)
   return 1;
 } // end main
 
 } // namespace openlb_sim
-
