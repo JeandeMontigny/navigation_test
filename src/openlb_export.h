@@ -79,20 +79,17 @@ namespace bdm {
 
     // -------- Agents -------- //
     std::vector<Double3> agents_position;
-    std::vector<std::vector<double>> agents_direction;
     std::vector<int> agents_state;
     // get humans info
-    auto get_agents_lists = [&agents_position, &agents_direction, &agents_state](SimObject* so) {
+    auto get_agents_lists = [&agents_position, &agents_state](SimObject* so) {
       auto* hu = bdm_static_cast<Human*>(so);
       agents_position.push_back(hu->GetPosition());
-      agents_direction.push_back(hu->orientation_);
       agents_state.push_back(hu->state_);
     };
     rm->ApplyOnAllElements(get_agents_lists);
 
     for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
       Double3 pos = agents_position[agent];
-      auto dir = agents_direction[agent];
       double radius = sparam->human_diameter/2;
 
       // per geom object: 40 faces (60 vertices)
