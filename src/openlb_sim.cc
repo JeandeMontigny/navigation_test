@@ -110,22 +110,23 @@ public:
 
 // ---------------------------------------------------------------------------
 void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
-  IndicatorF3D<T>& indicator, SuperGeometry3D<T>& superGeometry ) {
+                      IndicatorF3D<T>& indicator, STLreader<T>& stlReader,
+                      SuperGeometry3D<T>& superGeometry ) {
 
   OstreamManager clout( std::cout,"prepareGeometry" );
   clout << "Prepare Geometry ..." << std::endl;
 
-  STLreader<T> stlReader( "./output/openlb/bus.stl",
-    converter.getConversionFactorLength() );
-  IndicatorLayer3D<T> extendedDomain( stlReader,
-    converter.getConversionFactorLength() );
+  superGeometry.rename( 0, 2, indicator );
+  superGeometry.rename( 2, 1, stlReader );
 
+  superGeometry.clean();
+
+  // -------- biodynamo -------- //
   auto* sim = bdm::Simulation::GetActive();
   auto* rm = sim->GetResourceManager();
   auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
-
-  // -------- for each agents -------- //
   double radius = sparam->human_diameter/2;
+
   std::vector<bdm::Double3> agents_position;
   std::vector<std::vector<double>> agents_direction;
   std::vector<int> agents_state;
@@ -145,87 +146,25 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
       bdm::Double3 pos = agents_position[agent];
       auto dir = agents_direction[agent];
 
-      bdm::Double3 spread_pos = {pos[0] + dir[0]*radius,
-                                 pos[1] + dir[1]*radius,
-                                 pos[2] };
       // -------- create inlets -------- //
       // Sets material number for fluid and boundary
       superGeometry.rename( 0,2,indicator );
 
-      Vector<T,3> origin( T(),
-                         5.5 * converter.getCharPhysLength()
-                           + converter.getConversionFactorLength(),
-                         5.5 * converter.getCharPhysLength()
-                           + converter.getConversionFactorLength() );
+      Vector<T,3> spread_pos_in(pos[0] + dir[0]*radius,
+        pos[1] + dir[1]*radius, pos[2]);
+      Vector<T,3> spread_pos_out(pos[0] + dir[0]*(radius+1),
+        pos[1] + dir[1]*(radius+1), pos[2]);
 
-      Vector<T,3> extend( 4.0 * converter.getCharPhysLength()
-                           + 5*converter.getConversionFactorLength(),
-                         5.5 * converter.getCharPhysLength()
-                           + converter.getConversionFactorLength(),
-                         5.5 * converter.getCharPhysLength()
-                           + converter.getConversionFactorLength() );
-
-      IndicatorCylinder3D<T> inletCylinder( extend, origin,
-        converter.getCharPhysLength() );
-      superGeometry.rename( 2, 1, inletCylinder );
-
-
-      origin[0 ] = 4.*converter.getCharPhysLength();
-      origin[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      origin[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      extend[0] = 54. * converter.getCharPhysLength();
-      extend[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      extend[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      IndicatorCylinder3D<T> injectionTube( extend, origin,
-        5.5 * converter.getCharPhysLength() );
-      superGeometry.rename( 2,1,injectionTube );
-
-      origin[0] = converter.getConversionFactorLength();
-      origin[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      origin[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      extend[0] = T();
-      extend[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      extend[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      IndicatorCylinder3D<T> cylinderIN( extend, origin,
-       converter.getCharPhysLength() );
-      superGeometry.rename( 1,3,cylinderIN );
-
-      origin[0] = 54. * converter.getCharPhysLength()
-        - converter.getConversionFactorLength();
-      origin[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      origin[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      extend[0] = 54. * converter.getCharPhysLength();
-      extend[1] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-      extend[2] = 5.5 * converter.getCharPhysLength()
-        + converter.getConversionFactorLength();
-
-      IndicatorCylinder3D<T> cylinderOUT( extend, origin,
-        5.5*converter.getCharPhysLength() );
-      superGeometry.rename( 1,4,cylinderOUT );
+      IndicatorCylinder3D<T> layerInflow(spread_pos_in, spread_pos_out, 1);
+      superGeometry.rename( 2, 3, 1, layerInflow );
 
     } // if agent is infected
   } // for each agent in sim
 
   // Removes all not needed boundary voxels outside the surface
-  superGeometry.clean();
+  // superGeometry.clean();
   // Removes all not needed boundary voxels inside the surface
-  superGeometry.innerClean();
+  // superGeometry.innerClean();
   superGeometry.checkForErrors();
 
   superGeometry.print();
@@ -249,15 +188,18 @@ void prepareLattice( SuperLattice3D<T,DESCRIPTOR>& sLattice,
   const T omega = converter.getLatticeRelaxationFrequency();
 
   // Material=0 -->do nothing
-  sLattice.defineDynamics( superGeometry, 0, &instances::getNoDynamics<T, DESCRIPTOR>() );
+  sLattice.defineDynamics(
+    superGeometry, 0, &instances::getNoDynamics<T, DESCRIPTOR>() );
 
   // Material=1 -->bulk dynamics
   // Material=3 -->bulk dynamics (inflow)
   // Material=4 -->bulk dynamics (outflow)
-  sLattice.defineDynamics( superGeometry.getMaterialIndicator({1, 3, 4}), &bulkDynamics );
+  sLattice.defineDynamics(
+    superGeometry.getMaterialIndicator({1, 3, 4}), &bulkDynamics );
 
   // Material=2 -->bounce back
-  sLattice.defineDynamics( superGeometry, 2, &instances::getBounceBack<T, DESCRIPTOR>() );
+  sLattice.defineDynamics(
+    superGeometry, 2, &instances::getBounceBack<T, DESCRIPTOR>() );
 
   bc.addVelocityBoundary( superGeometry, 3, omega );
   bc.addPressureBoundary( superGeometry, 4, omega );
@@ -281,7 +223,8 @@ void setBoundaryValues( UnitConverter<T,DESCRIPTOR> const&converter,
     srand( time( nullptr ) );
     TurbulentVelocity3D<T,DESCRIPTOR> uSol( converter, inflowProfileMode );
 
-    lattice.iniEquilibrium( superGeometry.getMaterialIndicator({1, 2, 4}), rhoF, uF );
+    lattice.iniEquilibrium(
+      superGeometry.getMaterialIndicator({1, 2, 4}), rhoF, uF );
     lattice.iniEquilibrium( superGeometry, 3, rhoF, uSol );
 
     lattice.defineU( superGeometry, 3, uSol );
@@ -298,7 +241,7 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
                  SuperGeometry3D<T>& superGeometry, Timer<T>& timer ) {
 
   OstreamManager clout( std::cout,"getResults" );
-  SuperVTMwriter3D<T> vtmWriter( "nozzle3d" );
+  SuperVTMwriter3D<T> vtmWriter( "bus_spreading" );
 
   if ( iT==0 ) {
     // Writes the geometry, cuboid no. and rank no. as vti file for visualization
@@ -356,19 +299,28 @@ int main( int argc, char* argv[] ) {
   // Prints the converter log as console output
   converter.print();
   // Writes the converter log in a file
-  converter.write("nozzle3d");
-
-  Vector<T,3> origin;
-  Vector<T,3> extend( 54.*converter.getCharPhysLength(), 11.*converter.getCharPhysLength()+2.*converter.getConversionFactorLength(), 11.*converter.getCharPhysLength()+2.*converter.getConversionFactorLength() );
-
-  IndicatorCuboid3D<T> cuboid( extend,origin );
-
-  CuboidGeometry3D<T> cuboidGeometry( cuboid, converter.getConversionFactorLength(), singleton::mpi().getSize() );
-  HeuristicLoadBalancer<T> loadBalancer( cuboidGeometry );
+  converter.write("bus_spreading");
 
   // === 2nd Step: Prepare Geometry ===
-  SuperGeometry3D<T> superGeometry( cuboidGeometry, loadBalancer, 2 );
-  prepareGeometry( converter, cuboid, superGeometry );
+  STLreader<T> stlReader( "./output/openlb/bus.stl",
+    converter.getConversionFactorLength() );
+  IndicatorLayer3D<T> extendedDomain( stlReader,
+    converter.getConversionFactorLength() );
+
+    // Instantiation of a cuboidGeometry with weights
+  #ifdef PARALLEL_MODE_MPI
+    const int noOfCuboids = std::min( 16*N,2*singleton::mpi().getSize() );
+  #else
+    const int noOfCuboids = 2;
+  #endif
+    CuboidGeometry3D<T> cuboidGeometry( extendedDomain,
+      converter.getConversionFactorLength(), noOfCuboids );
+    // Instantiation of a loadBalancer
+    HeuristicLoadBalancer<T> loadBalancer( cuboidGeometry );
+    // Instantiation of a superGeometry
+    SuperGeometry3D<T> superGeometry( cuboidGeometry, loadBalancer, 2 );
+
+    prepareGeometry( converter, extendedDomain, stlReader, superGeometry );
 
   // === 3rd Step: Prepare Lattice ===
   SuperLattice3D<T, DESCRIPTOR> sLattice( superGeometry );
@@ -376,31 +328,38 @@ int main( int argc, char* argv[] ) {
   Dynamics<T, DESCRIPTOR>* bulkDynamics;
   const T omega = converter.getLatticeRelaxationFrequency();
 #if defined(RLB)
-  bulkDynamics = new RLBdynamics<T, DESCRIPTOR>( omega, instances::getBulkMomenta<T, DESCRIPTOR>() );
+  bulkDynamics = new RLBdynamics<T, DESCRIPTOR>(
+    omega, instances::getBulkMomenta<T, DESCRIPTOR>() );
 #elif defined(Smagorinsky)
-  bulkDynamics = new SmagorinskyBGKdynamics<T, DESCRIPTOR>( omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
+  bulkDynamics = new SmagorinskyBGKdynamics<T, DESCRIPTOR>(
+    omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
       0.15);
 #elif defined(ShearSmagorinsky)
-  bulkDynamics = new ShearSmagorinskyBGKdynamics<T, DESCRIPTOR>( omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
+  bulkDynamics = new ShearSmagorinskyBGKdynamics<T, DESCRIPTOR>(
+    omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
       0.15);
 #elif defined(Krause)
-  bulkDynamics = new KrauseBGKdynamics<T, DESCRIPTOR>( omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
+  bulkDynamics = new KrauseBGKdynamics<T, DESCRIPTOR>(
+    omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
       0.15);
 #else //ConsitentStrainSmagorinsky
-  bulkDynamics = new ConStrainSmagorinskyBGKdynamics<T, DESCRIPTOR>( omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
+  bulkDynamics = new ConStrainSmagorinskyBGKdynamics<T, DESCRIPTOR>(
+    omega, instances::getBulkMomenta<T, DESCRIPTOR>(),
       0.05);
 #endif
 
-  sOnLatticeBoundaryCondition3D<T, DESCRIPTOR> sBoundaryCondition( sLattice );
+  sOnLatticeBoundaryCondition3D<T, DESCRIPTOR> sBoundaryCondition(sLattice);
   createInterpBoundaryCondition3D<T, DESCRIPTOR> ( sBoundaryCondition );
 
-  sOffLatticeBoundaryCondition3D<T, DESCRIPTOR> sOffBoundaryCondition( sLattice );
+  sOffLatticeBoundaryCondition3D<T, DESCRIPTOR> sOffBoundaryCondition(sLattice);
   createBouzidiBoundaryCondition3D<T, DESCRIPTOR> ( sOffBoundaryCondition );
 
-  prepareLattice( sLattice, converter, *bulkDynamics, sBoundaryCondition, sOffBoundaryCondition, superGeometry );
+  prepareLattice( sLattice, converter, *bulkDynamics, sBoundaryCondition,
+    sOffBoundaryCondition, superGeometry );
 
   // === 4th Step: Main Loop with Timer ===
-  Timer<T> timer( converter.getLatticeTime( maxPhysT ), superGeometry.getStatistics().getNvoxel() );
+  Timer<T> timer( converter.getLatticeTime( maxPhysT ),
+    superGeometry.getStatistics().getNvoxel() );
   timer.start();
 
   for ( int iT = 0; iT <= converter.getLatticeTime( maxPhysT ); ++iT ) {
@@ -430,15 +389,15 @@ int main( int argc, char* argv[] ) {
   auto* rm = sim->GetResourceManager();
   auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
   double radius = sparam->human_diameter/2;
-  auto update_agents_virus_concentration = [](bdm::SimObject* so) {
+  auto update_agents_virus_concentration = [&radius](bdm::SimObject* so) {
     auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
     if (hu->state_ == bdm::State::kHealthy) {
       bdm::Double3 pos = hu->GetPosition();
-      bdm::Double3 dir = hu->orientation_;
+      std::vector<double> dir = hu->orientation_;
       bdm::Double3 spread_pos = {pos[0] + dir[0]*radius,
                                  pos[1] + dir[1]*radius,
                                  pos[2] };
-      hu->virus_concentration_ = GetVirusConcentration(spread_pos);
+      // hu->virus_concentration_ = GetVirusConcentration(spread_pos);
     } // end if kHealthy
   }; // end for each agents in sim
   rm->ApplyOnAllElements(update_agents_virus_concentration);
