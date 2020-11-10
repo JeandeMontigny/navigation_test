@@ -118,6 +118,49 @@ namespace bdm {
 
   } // end BuildMaze
 
+  inline TGeoManager* Buildcube() {
+
+    TGeoManager *geom = new TGeoManager("bus", "public transport 1");
+
+    // materials
+    TGeoMaterial *Vacuum = new TGeoMaterial("vacuum", 0, 0, 0);
+    TGeoMaterial *Fe = new TGeoMaterial("Fe",55.845,26,7.87);
+    // media
+    TGeoMedium *Air = new TGeoMedium("Air", 0, Vacuum);
+    TGeoMedium *Iron = new TGeoMedium("Iron", 0, Fe);
+
+    // simulation volume - 12m * 3m * 3.5m
+    TGeoVolume *sim_space = gGeoManager->MakeBox("sim_space", Air, 50, 50, 50);
+    gGeoManager->SetTopVolume(sim_space);
+    gGeoManager->SetTopVisible(0);
+
+    TGeoVolume *mBlocks;
+
+    // floor and roof
+    mBlocks = geom->MakeBox("floor_roof", Iron, 25, 25, 1);
+    mBlocks->SetLineColor(kBlack);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 0, -25));
+    sim_space->AddNodeOverlap(mBlocks, 2, new TGeoTranslation(0, 0, 25));
+
+    // sides
+    mBlocks = geom->MakeBox("left_right_sides", Iron, 25, 1, 25);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, -25, 0));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(0, 25, 0));
+
+    mBlocks = geom->MakeBox("front_back_sides", Iron, 1, 25, 25);
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(-25, 0, 0));
+    sim_space->AddNodeOverlap(mBlocks, 1, new TGeoTranslation(25, 0, 0));
+
+    // close geometry
+    geom->CloseGeometry();
+
+    std::cout << "geom construction done" << std::endl;
+    gGeoManager->SetMaxThreads(4);
+    return geom;
+  }
+
+
+
 }  // namespace bdm
 
 #endif // GEOM_CONSTRUCT_H_

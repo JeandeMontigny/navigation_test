@@ -159,9 +159,9 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
   } // for each agent in sim
 
   // Removes all not needed boundary voxels outside the surface
-  // superGeometry.clean();
+  superGeometry.clean();
   // Removes all not needed boundary voxels inside the surface
-  // superGeometry.innerClean();
+  superGeometry.innerClean();
   superGeometry.checkForErrors();
 
   superGeometry.print();

@@ -45,7 +45,7 @@ inline int Simulate(int argc, const char** argv) {
   std::string openlbDir = Concat(param->output_dir_, "/openlb/");
 
   //construct geom
-  BuildBus();
+  Buildcube();
 
   // construct the 2d array for navigation
   std::vector<std::vector<bool>> navigation_map = GetNavigationMap(-40);
@@ -61,7 +61,10 @@ inline int Simulate(int argc, const char** argv) {
   }
 
   //bus population creation
-  InitialBusPopulationCreation(&navigation_map);
+  Human* human = new Human({0, 0, 0});
+  human->SetDiameter(sparam->human_diameter);
+  human->state_ = State::kInfected;
+  simulation.GetResourceManager()->push_back(human);
   std::cout << "population created" << std::endl;
 
   ExportOpenlbFiles(openlbDir, "stl");
