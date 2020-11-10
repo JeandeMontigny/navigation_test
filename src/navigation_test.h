@@ -66,8 +66,7 @@ inline int Simulate(int argc, const char** argv) {
 
   ExportOpenlbFiles(openlbDir, "stl");
 
-  int o_argc; char* o_argv[1];
-  openlb_sim::main(o_argc, o_argv);
+  openlb_sim::main(0, nullptr);
 
   return 1;
 
@@ -75,6 +74,11 @@ inline int Simulate(int argc, const char** argv) {
   std::cout << "simulating.." << std::endl;
   for (uint64_t i = 0; i <= sparam->number_of_steps; ++i) {
     simulation.GetScheduler()->Simulate(1);
+
+    // every 5 seconds
+    if (i % 500 == 0) {
+      openlb_sim::main(0, nullptr);
+    }
 
     // passenger pop in at bus entrace position
     // first bus stop
