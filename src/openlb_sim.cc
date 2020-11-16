@@ -154,15 +154,18 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
       auto dir = agents_direction[agent];
 
       // -------- create inlets -------- //
-      // NOTE: geometry okay
+      // center coord (x, y, z), orientation (x, y, z), diameter
       IndicatorCircle3D<T> inflow(
-        -13*converter.getCharPhysLength(), 0, 0,
-        -1*converter.getCharPhysLength(), 0, 0,
+        (pos[0] + dir[0]*(radius*1.025))*converter.getCharPhysLength(),
+        (pos[1] + dir[1]*(radius*1.025))*converter.getCharPhysLength(),
+        pos[2]*converter.getCharPhysLength(),
+        dir[0]*converter.getCharPhysLength(),
+        dir[1]*converter.getCharPhysLength(),
+        0,
         1*converter.getCharPhysLength() );
       IndicatorCylinder3D<T> layerInflow( inflow,
         1*converter.getCharPhysLength() );
-      // TODO: 1 to 3 (inlet)
-      // NOTE: if set to inlet, seg fault due to lattice
+      // set material as inlet
       superGeometry.rename( 1, 0, layerInflow );
 
     } // if agent is infected
@@ -369,7 +372,10 @@ int main( int argc, char* argv[] ) {
     superGeometry.getStatistics().getNvoxel() );
   timer.start();
 
-  for ( int iT = 0; iT <= converter.getLatticeTime( maxPhysT ); ++iT ) {
+  OstreamManager cloutsim( std::cout,"openlb simulation" );
+  cloutsim << "Turbulence simulation ..." << std::endl;
+  // for ( int iT = 0; iT <= converter.getLatticeTime( maxPhysT ); ++iT ) {
+  for ( int iT = 0; iT <= 5; ++iT ) {
 
     // === 5ath Step: Apply filter
 #ifdef ADM
@@ -386,6 +392,7 @@ int main( int argc, char* argv[] ) {
     // === 7th Step: Computation and Output of the Results ===
     getResults( sLattice, converter, iT, superGeometry, timer );
   } // end for getLatticeTime
+  cloutsim << "Turbulence simulation ... OK" << std::endl;
 
   timer.stop();
   timer.printSummary();
@@ -396,7 +403,8 @@ int main( int argc, char* argv[] ) {
   auto* rm = sim->GetResourceManager();
   auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
   double radius = sparam->human_diameter/2;
-  auto update_agents_virus_concentration = [&radius](bdm::SimObject* so) {
+  auto update_agents_virus_concentration = [&radius, &converter]
+    (bdm::SimObject* so) {
     auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
     if (hu->state_ == bdm::State::kHealthy) {
       bdm::Double3 pos = hu->GetPosition();
