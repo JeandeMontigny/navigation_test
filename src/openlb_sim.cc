@@ -46,10 +46,15 @@ typedef double T;
 
 // ---------------------------------------------------------------------------
 // Parameters for the simulation setup
-const int N = 1;                 // resolution of the model, for RLB N>=5, others N>=2, but N>=5 recommended
-const int M = 1;                 // time discretization refinement
-const int inflowProfileMode = 0; // block profile (mode=0), power profile (mode=1)
-const T maxPhysT = 5.;         // max. simulation time in s, SI unit
+
+// resolution of the model: number of voxel per physLength
+const int N = 4;
+// time discretization refinement
+const int M = 1;
+// block profile (mode=0), power profile (mode=1)
+const int inflowProfileMode = 0;
+// max. simulation time in s, SI unit
+const T maxPhysT = 5.;
 
 // ---------------------------------------------------------------------------
 template <typename T, typename _DESCRIPTOR>
@@ -118,7 +123,8 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
 
   // Sets material number for fluid and boundary
   superGeometry.rename( 0, 2, indicator );
-  superGeometry.rename( 2, 1, stlReader );
+  superGeometry.rename( 0, 1 );
+  superGeometry.rename( 2, 0, stlReader );
 
   superGeometry.clean();
 
@@ -148,13 +154,17 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
       auto dir = agents_direction[agent];
 
       // -------- create inlets -------- //
-      // Set material number for inflow
+      // NOTE: geometry okay
       IndicatorCircle3D<T> inflow(
-        pos[0] + dir[0]*radius, pos[1] + dir[1]*radius, pos[2],
-        dir[0], dir[1], dir[2], 1 );
+        -13*converter.getCharPhysLength(), 0, 0,
+        -1*converter.getCharPhysLength(), 0, 0,
+        1*converter.getCharPhysLength() );
       IndicatorCylinder3D<T> layerInflow( inflow,
-        2.*converter.getConversionFactorLength() );
-      superGeometry.rename( 1, 3, layerInflow );
+        1*converter.getCharPhysLength() );
+      // TODO: 1 to 3 (inlet)
+      // NOTE: if set to inlet, seg fault due to lattice
+      superGeometry.rename( 1, 0, layerInflow );
+
     } // if agent is infected
   } // for each agent in sim
 
@@ -258,8 +268,8 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
     SuperLatticeCuboid3D<T, DESCRIPTOR> cuboid( sLattice );
     SuperLatticeRank3D<T, DESCRIPTOR> rank( sLattice );
     vtmWriter.write( geometry );
-    vtmWriter.write( cuboid );
-    vtmWriter.write( rank );
+    // vtmWriter.write( cuboid );
+    // vtmWriter.write( rank );
     vtmWriter.createMasterFile();
   }
 
@@ -271,19 +281,7 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
     vtmWriter.addFunctor( velocity );
     vtmWriter.addFunctor( pressure );
     vtmWriter.write( iT );
-
-    SuperEuklidNorm3D<T, DESCRIPTOR> normVel( velocity );
-    BlockReduction3D2D<T> planeReduction( normVel, {0, 1, 0} );
-    // write output as JPEG
-    heatmap::write(planeReduction, iT);
   }
-
-  // Writes output on the console
-  // if ( iT%converter.getLatticeTime( maxPhysT/200. )==0 ) {
-  //   timer.update( iT );
-  //   timer.printStep();
-  //   sLattice.getStatistics().print( iT, converter.getPhysTime( iT ) );
-  // }
 }
 
 // ---------------------------------------------------------------------------
@@ -300,7 +298,7 @@ int main( int argc, char* argv[] ) {
   UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR> const converter(
     int {N},        // resolution: number of voxels per charPhysL
     (T)   0.500018, // latticeRelaxationTime: relaxation time, have to be greater than 0.5!
-    (T)   1,        // charPhysLength: reference length of simulation geometry
+    (T)   0.01,     // charPhysLength: reference length of simulation geometry
     (T)   1,        // charPhysVelocity: maximal/highest expected velocity during simulation in __m / s__
     (T)   0.0002,   // physViscosity: physical kinematic viscosity in __m^2 / s__
     (T)   1.0       // physDensity: physical density in __kg / m^3__
@@ -312,7 +310,7 @@ int main( int argc, char* argv[] ) {
 
   // === 2nd Step: Prepare Geometry ===
   STLreader<T> stlReader( "./output/openlb/bus.stl",
-    converter.getConversionFactorLength() );
+    converter.getConversionFactorLength(), 0.01 );
   IndicatorLayer3D<T> extendedDomain( stlReader,
     converter.getConversionFactorLength() );
 
@@ -403,9 +401,10 @@ int main( int argc, char* argv[] ) {
     if (hu->state_ == bdm::State::kHealthy) {
       bdm::Double3 pos = hu->GetPosition();
       std::vector<double> dir = hu->orientation_;
-      bdm::Double3 spread_pos = {pos[0] + dir[0]*radius,
-                                 pos[1] + dir[1]*radius,
-                                 pos[2] };
+      bdm::Double3 spread_pos = {
+        (pos[0] + dir[0]*radius)*converter.getCharPhysLength(),
+        (pos[1] + dir[1]*radius)*converter.getCharPhysLength(),
+        pos[2]*converter.getCharPhysLength() };
       // hu->virus_concentration_ = GetVirusConcentration(spread_pos);
     } // end if kHealthy
   }; // end for each agents in sim
