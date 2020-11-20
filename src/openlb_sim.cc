@@ -48,13 +48,13 @@ typedef double T;
 // Parameters for the simulation setup
 
 // resolution of the model: number of voxel per physLength
-const int N = 4;
+const int N = 2;
 // time discretization refinement
 const int M = 1;
 // block profile (mode=0), power profile (mode=1)
 const int inflowProfileMode = 0;
-// max. simulation time in s, SI unit
-const T maxPhysT = 5.;
+// max. simulation time
+const T maxPhysT = 0.0001;
 
 // ---------------------------------------------------------------------------
 template <typename T, typename _DESCRIPTOR>
@@ -154,20 +154,18 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
       auto dir = agents_direction[agent];
 
       // -------- create inlets -------- //
-      // center coord (x, y, z), orientation (x, y, z), diameter
-      IndicatorCircle3D<T> inflow(
-        (pos[0] + dir[0]*(radius*1.025))*converter.getCharPhysLength(),
-        (pos[1] + dir[1]*(radius*1.025))*converter.getCharPhysLength(),
-        pos[2]*converter.getCharPhysLength(),
-        dir[0]*converter.getCharPhysLength(),
-        dir[1]*converter.getCharPhysLength(),
-        0,
-        1*converter.getCharPhysLength() );
-      IndicatorCylinder3D<T> layerInflow( inflow,
-        1*converter.getCharPhysLength() );
-      // set material as inlet
-      superGeometry.rename( 1, 0, layerInflow );
+      Vector<T,3> spread_pos_in(
+        (pos[0] + dir[0]*radius+1)*converter.getCharPhysLength(),
+        (pos[1] + dir[1]*radius+1)*converter.getCharPhysLength(),
+        pos[2] );
+      Vector<T,3> spread_pos_out(
+        (pos[0] + dir[0]*(radius+3))*converter.getCharPhysLength(),
+        (pos[1] + dir[1]*(radius+3))*converter.getCharPhysLength(),
+        pos[2] );
 
+      IndicatorCylinder3D<T> layerInflow( spread_pos_in, spread_pos_out,
+        1*converter.getCharPhysLength());
+      superGeometry.rename( 1, 3, layerInflow );
     } // if agent is infected
   } // for each agent in sim
 
@@ -209,21 +207,8 @@ void prepareLattice( SuperLattice3D<T,DESCRIPTOR>& sLattice,
     superGeometry, 2, &instances::getBounceBack<T, DESCRIPTOR>() );
 
   // Material=3 -->bulk dynamics (inflow)
-  // sLattice.defineDynamics(
-  //   superGeometry, 3, &instances::getNoDynamics<T,DESCRIPTOR>() );
-  // offBc.addVelocityBoundary( superGeometry, 3, stlReader );
-
-  // Material=4 -->bulk dynamics (outflow)
-  // sLattice.defineDynamics(
-  //   superGeometry.getMaterialIndicator(4), &bulkDynamics );
-
-  // Initial conditions
-  // AnalyticalConst3D<T,T> rhoF( 1 );
-  // std::vector<T> velocity( 3,T() );
-  // AnalyticalConst3D<T,T> uF( velocity );
-
+  sLattice.defineDynamics( superGeometry, 3, &bulkDynamics );
   bc.addVelocityBoundary( superGeometry, 3, omega );
-  // bc.addPressureBoundary( superGeometry, 4, omega );
 
   clout << "Prepare Lattice ... OK" << std::endl;
 }
@@ -317,16 +302,18 @@ int main( int argc, char* argv[] ) {
   IndicatorLayer3D<T> extendedDomain( stlReader,
     converter.getConversionFactorLength() );
 
-    // Instantiation of a cuboidGeometry with weights
+  // Instantiation of a cuboidGeometry with weights
   #ifdef PARALLEL_MODE_MPI
-    const int noOfCuboids = std::min( 16*N,2*singleton::mpi().getSize() );
+    const int noOfCuboids = std::min( 16*N, 2*singleton::mpi().getSize() );
   #else
     const int noOfCuboids = 2;
   #endif
     CuboidGeometry3D<T> cuboidGeometry( extendedDomain,
       converter.getConversionFactorLength(), noOfCuboids );
+
     // Instantiation of a loadBalancer
     HeuristicLoadBalancer<T> loadBalancer( cuboidGeometry );
+
     // Instantiation of a superGeometry
     SuperGeometry3D<T> superGeometry( cuboidGeometry, loadBalancer, 2 );
 
@@ -374,8 +361,15 @@ int main( int argc, char* argv[] ) {
 
   OstreamManager cloutsim( std::cout,"openlb simulation" );
   cloutsim << "Turbulence simulation ..." << std::endl;
-  // for ( int iT = 0; iT <= converter.getLatticeTime( maxPhysT ); ++iT ) {
-  for ( int iT = 0; iT <= 5; ++iT ) {
+
+  int max_step = converter.getLatticeTime( maxPhysT );
+  int print_step = (int)max_step/5;
+
+  for ( int iT = 0; iT <= max_step; ++iT ) {
+
+    if (iT % print_step == 0) {
+      cloutsim << "Step " << iT << " out of " << max_step << std::endl;
+    }
 
     // === 5ath Step: Apply filter
 #ifdef ADM
