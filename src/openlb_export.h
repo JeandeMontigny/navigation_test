@@ -62,15 +62,16 @@ namespace bdm {
            (float)face_orient_list[tri][1],
            (float)face_orient_list[tri][2]
          };
+         // x/100: cm to m
          f.vertices = {
-           {(float)vert_master[vert_tri_list[tri][0]][0],
-             (float)vert_master[vert_tri_list[tri][0]][1],
-             (float)vert_master[vert_tri_list[tri][0]][2]},
-           {(float)vert_master[vert_tri_list[tri][1]][0],
-             (float)vert_master[vert_tri_list[tri][1]][1], (float)vert_master[vert_tri_list[tri][1]][2]},
-           {(float)vert_master[vert_tri_list[tri][2]][0],
-             (float)vert_master[vert_tri_list[tri][2]][1],
-             (float)vert_master[vert_tri_list[tri][2]][2]}
+           {(float)(vert_master[vert_tri_list[tri][0]][0]/100),
+             (float)(vert_master[vert_tri_list[tri][0]][1]/100),
+             (float)(vert_master[vert_tri_list[tri][0]][2]/100)},
+           {(float)(vert_master[vert_tri_list[tri][1]][0]/100),
+             (float)(vert_master[vert_tri_list[tri][1]][1]/100), (float)(vert_master[vert_tri_list[tri][1]][2]/100)},
+           {(float)(vert_master[vert_tri_list[tri][2]][0]/100),
+             (float)(vert_master[vert_tri_list[tri][2]][1]/100),
+             (float)(vert_master[vert_tri_list[tri][2]][2]/100)}
          };
 
          facets.push_back(f);
@@ -90,7 +91,10 @@ namespace bdm {
 
     for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
       Double3 pos = agents_position[agent];
-      double radius = sparam->human_diameter/2;
+      // cm to m
+      pos[1] = pos[1]/100; pos[2] = pos[2]/100; pos[3] = pos[3]/100;
+      // diameter/200: radius from cm to m
+      double radius = sparam->human_diameter/200;
 
       // per geom object: 40 faces (60 vertices)
       Double3 face_orient_list[40] = {

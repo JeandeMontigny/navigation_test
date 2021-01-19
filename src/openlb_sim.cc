@@ -48,13 +48,13 @@ typedef double T;
 // Parameters for the simulation setup
 
 // resolution of the model: number of voxel per physLength
-const int N = 2;
+const int N = 200;
 // time discretization refinement
 const int M = 1;
 // block profile (mode=0), power profile (mode=1)
 const int inflowProfileMode = 0;
 // max. simulation time
-const T maxPhysT = 0.0001;
+const T maxPhysT = 0.1;
 
 // ---------------------------------------------------------------------------
 template <typename T, typename _DESCRIPTOR>
@@ -83,7 +83,8 @@ public:
     this->getName() = "turbulentVelocity3d";
   };
 
-  bool operator()( T output[], const S input[] ) override {
+  bool operator()( T output[], const BaseType<T> input[] ) override
+  {
     T y = input[1];
     T z = input[2];
     // block profile inititalization
@@ -132,7 +133,7 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
   auto* sim = bdm::Simulation::GetActive();
   auto* rm = sim->GetResourceManager();
   auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
-  double radius = sparam->human_diameter/2;
+  double radius = sparam->human_diameter/200;
 
   std::vector<bdm::Double3> agents_position;
   std::vector<std::vector<double>> agents_direction;
@@ -155,16 +156,16 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
 
       // -------- create inlets -------- //
       Vector<T,3> spread_pos_in(
-        (pos[0] + dir[0]*radius+1)*converter.getCharPhysLength(),
-        (pos[1] + dir[1]*radius+1)*converter.getCharPhysLength(),
-        pos[2] );
+        (pos[0]/100 + dir[0]*radius)*converter.getCharPhysLength(),
+        (pos[1]/100 + dir[1]*radius)*converter.getCharPhysLength(),
+        pos[2]/100 );
       Vector<T,3> spread_pos_out(
-        (pos[0] + dir[0]*(radius+3))*converter.getCharPhysLength(),
-        (pos[1] + dir[1]*(radius+3))*converter.getCharPhysLength(),
-        pos[2] );
+        (pos[0]/100 + dir[0]*(radius+0.01))*converter.getCharPhysLength(),
+        (pos[1]/100 + dir[1]*(radius+0.01))*converter.getCharPhysLength(),
+        pos[2]/100 );
 
       IndicatorCylinder3D<T> layerInflow( spread_pos_in, spread_pos_out,
-        1*converter.getCharPhysLength());
+        0.04*converter.getCharPhysLength());
       superGeometry.rename( 1, 3, layerInflow );
     } // if agent is infected
   } // for each agent in sim
@@ -175,7 +176,7 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
   superGeometry.innerClean();
   superGeometry.checkForErrors();
 
-  superGeometry.print();
+  // superGeometry.print();
   clout << "Prepare Geometry ... OK" << std::endl;
 }
 
@@ -183,12 +184,7 @@ void prepareGeometry( UnitConverter<T,DESCRIPTOR> const& converter,
 void prepareLattice( SuperLattice3D<T,DESCRIPTOR>& sLattice,
                      UnitConverter<T,DESCRIPTOR> const& converter,
                      Dynamics<T, DESCRIPTOR>& bulkDynamics,
-                     sOnLatticeBoundaryCondition3D<T,DESCRIPTOR>& bc,
-                     sOffLatticeBoundaryCondition3D<T,DESCRIPTOR>& offBc,
-                     STLreader<T>& stlReader,
                      SuperGeometry3D<T>& superGeometry ) {
-
-
 
   OstreamManager clout( std::cout,"prepareLattice" );
   clout << "Prepare Lattice ..." << std::endl;
@@ -207,10 +203,85 @@ void prepareLattice( SuperLattice3D<T,DESCRIPTOR>& sLattice,
     superGeometry, 2, &instances::getBounceBack<T, DESCRIPTOR>() );
 
   // Material=3 -->bulk dynamics (inflow)
-  sLattice.defineDynamics( superGeometry, 3, &bulkDynamics );
-  bc.addVelocityBoundary( superGeometry, 3, omega );
+  setInterpolatedVelocityBoundary<T,DESCRIPTOR>(sLattice, omega, superGeometry, 3);
+
+  // Material=4 -->bulk dynamics (outflow)
 
   clout << "Prepare Lattice ... OK" << std::endl;
+}
+
+// ---------------------------------------------------------------------------
+void prepareParticules(SuperLattice3D<T,DESCRIPTOR>& sLattice,
+                  UnitConverter<T,DESCRIPTOR> const& converter,
+                  SuperGeometry3D<T>& superGeometry,
+                  SuperParticleSystem3D<T, Particle3D>& superParticleSystem,
+                  SuperLatticeInterpPhysVelocity3D<T, DESCRIPTOR>& velocityProbe,
+                  int NUM_PARTICLES) {
+
+  OstreamManager clout( std::cout,"prepareParticules" );
+  clout << "Prepare Particules ..." << std::endl;
+
+  // -------- biodynamo -------- //
+  auto* sim = bdm::Simulation::GetActive();
+  auto* rm = sim->GetResourceManager();
+  auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
+  double radius = sparam->human_diameter/200;
+
+  std::vector<bdm::Double3> agents_position;
+  std::vector<std::vector<double>> agents_direction;
+  std::vector<int> agents_state;
+  // get humans info
+  auto get_agents_lists = [&agents_position, &agents_direction,
+    &agents_state](bdm::SimObject* so) {
+    auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
+    agents_position.push_back(hu->GetPosition());
+    agents_direction.push_back(hu->orientation_);
+    agents_state.push_back(hu->state_);
+  };
+  rm->ApplyOnAllElements(get_agents_lists);
+
+  for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
+    // NOTE: spread only for infected agents
+    if (agents_state[agent] == bdm::State::kInfected) {
+      bdm::Double3 pos = agents_position[agent];
+      auto dir = agents_direction[agent];
+
+      constexpr T DENSITY = 1000.; // kg/m^3
+      constexpr T RADIUS = 0.00001; // m
+      const T MASS = 4. / 3. * M_PI * std::pow(RADIUS, 3) * DENSITY;
+
+      // -------- create inlets -------- //
+      Vector<T,3> spread_pos_in(
+        (pos[0]/100 + dir[0]*(radius+0.01))*converter.getCharPhysLength(),
+        (pos[1]/100 + dir[1]*(radius+0.01))*converter.getCharPhysLength(),
+        pos[2]/100 );
+      Vector<T,3> spread_pos_out(
+        (pos[0]/100 + dir[0]*(radius+0.04))*converter.getCharPhysLength(),
+        (pos[1]/100 + dir[1]*(radius+0.04))*converter.getCharPhysLength(),
+        pos[2]/100 );
+
+      IndicatorCylinder3D<T> inletCylinder(spread_pos_in, spread_pos_out,
+        0.03*converter.getCharPhysLength());
+
+      superParticleSystem.addParticle(inletCylinder, MASS, RADIUS, NUM_PARTICLES);
+
+      auto stokesDragForce = make_shared
+              < StokesDragForce3D<T, Particle3D, DESCRIPTOR>
+              > ( velocityProbe, converter );
+
+      superParticleSystem.addForce(stokesDragForce);
+
+      superParticleSystem.setVelToFluidVel(velocityProbe);
+
+      std::set<int> boundMaterial = {2};
+      auto materialBoundary = make_shared
+              < MaterialBoundary3D<T, Particle3D>
+              > (superGeometry, boundMaterial);
+      superParticleSystem.addBoundary(materialBoundary);
+
+    } // if agent is infected
+  } // for each agent in sim
+  clout << "Prepare Particules ... OK" << std::endl;
 }
 
 // ---------------------------------------------------------------------------
@@ -251,13 +322,9 @@ void getResults( SuperLattice3D<T, DESCRIPTOR>& sLattice,
   SuperVTMwriter3D<T> vtmWriter( "bus_spreading" );
 
   if ( iT==0 ) {
-    // Writes the geometry, cuboid no. and rank no. as vti file for visualization
+    // Writes the geometry as vti file for visualization
     SuperLatticeGeometry3D<T, DESCRIPTOR> geometry( sLattice, superGeometry );
-    SuperLatticeCuboid3D<T, DESCRIPTOR> cuboid( sLattice );
-    SuperLatticeRank3D<T, DESCRIPTOR> rank( sLattice );
     vtmWriter.write( geometry );
-    // vtmWriter.write( cuboid );
-    // vtmWriter.write( rank );
     vtmWriter.createMasterFile();
   }
 
@@ -286,19 +353,19 @@ int main( int argc, char* argv[] ) {
   UnitConverterFromResolutionAndRelaxationTime<T, DESCRIPTOR> const converter(
     int {N},        // resolution: number of voxels per charPhysL
     (T)   0.500018, // latticeRelaxationTime: relaxation time, have to be greater than 0.5!
-    (T)   0.01,     // charPhysLength: reference length of simulation geometry
+    (T)   1,     // charPhysLength: reference length of simulation geometry
     (T)   1,        // charPhysVelocity: maximal/highest expected velocity during simulation in __m / s__
     (T)   0.0002,   // physViscosity: physical kinematic viscosity in __m^2 / s__
     (T)   1.0       // physDensity: physical density in __kg / m^3__
   );
   // Prints the converter log as console output
-  converter.print();
+  // converter.print();
   // Writes the converter log in a file
   converter.write("bus_spreading");
 
   // === 2nd Step: Prepare Geometry ===
   STLreader<T> stlReader( "./output/openlb/bus.stl",
-    converter.getConversionFactorLength(), 0.01 );
+    converter.getConversionFactorLength() );
   IndicatorLayer3D<T> extendedDomain( stlReader,
     converter.getConversionFactorLength() );
 
@@ -345,14 +412,24 @@ int main( int argc, char* argv[] ) {
       0.05);
 #endif
 
-  sOnLatticeBoundaryCondition3D<T, DESCRIPTOR> sBoundaryCondition(sLattice);
-  createInterpBoundaryCondition3D<T, DESCRIPTOR> ( sBoundaryCondition );
+  prepareLattice( sLattice, converter, *bulkDynamics, superGeometry );
 
-  sOffLatticeBoundaryCondition3D<T, DESCRIPTOR> sOffBoundaryCondition(sLattice);
-  createBouzidiBoundaryCondition3D<T, DESCRIPTOR> ( sOffBoundaryCondition );
+  // === 3b Step: Prepare particles ===
+  SuperParticleSystem3D<T, Particle3D> superParticleSystem(superGeometry);
+  SuperLatticeInterpPhysVelocity3D<T, DESCRIPTOR> velocityProbe(sLattice, converter);
 
-  prepareLattice( sLattice, converter, *bulkDynamics, sBoundaryCondition,
-    sOffBoundaryCondition, stlReader, superGeometry );
+  // initialise pvd file for particles visualisation
+  SuperParticleSysVtuWriter<T, Particle3D> particleVtuWriter(superParticleSystem, "particles",
+      SuperParticleSysVtuWriter<T, Particle3D>::particleProperties::velocity
+        |
+      SuperParticleSysVtuWriter<T, Particle3D>::particleProperties::mass
+        |
+      SuperParticleSysVtuWriter<T, Particle3D>::particleProperties::radius);
+
+  constexpr int NUM_PARTICLES = 1000;
+  Timer<T> particleTimer(converter.getLatticeTime(maxPhysT), NUM_PARTICLES);
+
+  prepareParticules(sLattice, converter, superGeometry, superParticleSystem, velocityProbe, NUM_PARTICLES);
 
   // === 4th Step: Main Loop with Timer ===
   Timer<T> timer( converter.getLatticeTime( maxPhysT ),
@@ -391,22 +468,56 @@ int main( int argc, char* argv[] ) {
   timer.stop();
   timer.printSummary();
 
+  // particles vtk files for visualisation
+  particleTimer.start();
+  for (std::size_t iT = 0; iT <= converter.getLatticeTime(maxPhysT); ++iT) {
+      superParticleSystem.simulate(converter.getConversionFactorTime());
+      if (iT % converter.getLatticeTime(maxPhysT / 100.) == 0) {
+          particleTimer.update(iT);
+          particleVtuWriter.write(iT);
+      }
+  }
+  particleTimer.stop();
+
   // -------- biodynamo -------- //
   // update virus concentration at each agent (spread) position
   auto* sim = bdm::Simulation::GetActive();
   auto* rm = sim->GetResourceManager();
   auto* sparam = sim->GetParam()->GetModuleParam<bdm::SimParam>();
-  double radius = sparam->human_diameter/2;
-  auto update_agents_virus_concentration = [&radius, &converter]
+  auto* random = sim->GetRandom();
+  double radius = sparam->human_diameter/200;
+  auto update_agents_virus_concentration =
+    [&radius, &sLattice, &converter, &superGeometry, &random]
     (bdm::SimObject* so) {
     auto* hu = bdm::bdm_static_cast<bdm::Human*>(so);
     if (hu->state_ == bdm::State::kHealthy) {
       bdm::Double3 pos = hu->GetPosition();
       std::vector<double> dir = hu->orientation_;
-      bdm::Double3 spread_pos = {
-        (pos[0] + dir[0]*radius)*converter.getCharPhysLength(),
-        (pos[1] + dir[1]*radius)*converter.getCharPhysLength(),
-        pos[2]*converter.getCharPhysLength() };
+
+      T measure_pos[3] = {
+        (pos[0]/100 + dir[0]*(radius+0.10))*converter.getCharPhysLength(),
+        (pos[1]/100 + dir[1]*(radius+0.10))*converter.getCharPhysLength(),
+        pos[2]/100*converter.getCharPhysLength() };
+
+      // pressure
+      SuperLatticePhysPressure3D<T, DESCRIPTOR> pressure( sLattice, converter );
+      AnalyticalFfromSuperF3D<T> intpolatePressure( pressure, true );
+      SuperLatticePhysDrag3D<T,DESCRIPTOR> drag( sLattice, superGeometry, 5, converter );
+
+      T pressure_value;
+      intpolatePressure(&pressure_value, measure_pos);
+
+      // std::cout << "pressure at position {"
+      //           << measure_pos[0]/converter.getCharPhysLength() <<", "
+      //           << measure_pos[1]/converter.getCharPhysLength() << ", "
+      //           << measure_pos[2]/converter.getCharPhysLength() << "} = "
+      //           << pressure_value << std::endl;
+
+      // NOTE: temporary solution
+      if (pressure_value > 0 && random->Uniform()*pressure_value > 2 ) {
+        hu->state_ = bdm::State::kInfected;
+      }
+      // TODO: particules concentration at this position
       // hu->virus_concentration_ = GetVirusConcentration(spread_pos);
     } // end if kHealthy
   }; // end for each agents in sim
