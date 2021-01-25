@@ -92,7 +92,7 @@ namespace bdm {
     for (size_t agent = 0; agent < agents_position.size(); agent++ ) {
       Double3 pos = agents_position[agent];
       // cm to m
-      pos[1] = pos[1]/100; pos[2] = pos[2]/100; pos[3] = pos[3]/100;
+      pos[0] = pos[0]/100; pos[1] = pos[1]/100; pos[2] = pos[2]/100;
       // diameter/200: radius from cm to m
       double radius = sparam->human_diameter/200;
 
